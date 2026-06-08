@@ -1,0 +1,33 @@
+package com.chinaex123.funky_effect_lib;
+
+import com.chinaex123.funky_effect_lib.entity.AfterimageClone;
+import com.chinaex123.funky_effect_lib.init.FELEffects;
+import com.chinaex123.funky_effect_lib.init.FELEntityTypes;
+import com.chinaex123.funky_effect_lib.init.FELSounds;
+import com.mojang.logging.LogUtils;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.slf4j.Logger;
+
+@Mod(FunkyEffectLib.MOD_ID)
+public class FunkyEffectLib {
+    public static final String MOD_ID = "funky_effect_lib";
+    public static final Logger LOGGER = LogUtils.getLogger();
+
+    public FunkyEffectLib(FMLJavaModLoadingContext context) {
+        IEventBus modEventBus = context.getModEventBus();
+        FELEffects.EFFECTS.register(modEventBus);
+        FELSounds.SOUND_EVENTS.register(modEventBus);
+        FELEntityTypes.ENTITY_TYPES.register(modEventBus);
+        modEventBus.addListener(FunkyEffectLib::registerAttributes);
+    }
+
+    @SubscribeEvent
+    public static void registerAttributes(EntityAttributeCreationEvent event) {
+        event.put(FELEntityTypes.AFTERIMAGE_CLONE.get(), AfterimageClone.createAttributes());
+    }
+
+}

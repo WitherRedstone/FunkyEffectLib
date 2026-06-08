@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "com.chinaex123.funky_effect_lib.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "FogRendererMixin",
+    "ItemStackMixin",
+    "LivingEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
