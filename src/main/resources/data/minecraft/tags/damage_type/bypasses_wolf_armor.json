@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "funky_effect_lib:radiation",
+    "funky_effect_lib:vacuum_erosion",
+    "funky_effect_lib:real_damage"
+  ]
+}

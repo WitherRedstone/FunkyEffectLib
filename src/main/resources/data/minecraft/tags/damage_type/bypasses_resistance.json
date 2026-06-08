@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "funky_effect_lib:electric_shock",
+    "funky_effect_lib:radiation",
+    "funky_effect_lib:mana_burn",
+    "funky_effect_lib:vacuum_erosion",
+    "funky_effect_lib:real_damage"
+  ]
+}

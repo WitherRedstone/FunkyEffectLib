@@ -1,0 +1,7 @@
+{
+  "fel.effect.ignite_explode": {
+    "sounds": [
+      "funky_effect_lib:fel.effect.ignite_explode"
+    ]
+  }
+}
