@@ -1,4 +1,4 @@
-package com.chinaex123.funky_effect_lib.mixin;
+package com.chinaex123.funky_effect_lib.mixins;
 
 import com.chinaex123.funky_effect_lib.effect.KnowledgeHardening;
 import com.chinaex123.funky_effect_lib.init.FELEffects;

@@ -84,7 +84,7 @@ dependencies {
 }
 
 mixin {
-    add sourceSets.main, 'funky_effect_lib.refmap.json'
+    add sourceSets.main, 'funky_effect_lib.mixins.refmap.json'
     config 'funky_effect_lib.mixins.json'
 }
 
