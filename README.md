@@ -8,7 +8,7 @@
 
 ## Introduction
 
-Funky Effect Lib is a Minecraft mod that primarily adds buffs and debuffs inspired by *Destiny 2*, along with various other fun and unique effects.
+Added buffs and debuffs from *Destiny 2*, along with other fun and quirky effects.
 
 ## Features
 
@@ -86,7 +86,7 @@ For issues, suggestions, or contributions, please visit the project repository.
 
 ## 简介
 
-奇趣效果Lib 主要添加了来自《命运2》的增益与减益效果，同时也加入了一些其他奇趣效果。
+主要添加了来自《命运2》的增益与减益效果，同时也加入了一些其他奇趣效果。
 
 ## 功能特点
 
