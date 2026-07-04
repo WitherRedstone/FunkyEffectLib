@@ -5,8 +5,10 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "funky_effect_lib.mixins.refmap.json",
   "mixins": [
+    "ItemStackMixin"
+  ],
+  "client": [
     "FogRendererMixin",
-    "ItemStackMixin",
     "LivingEntityMixin"
   ]
 }
