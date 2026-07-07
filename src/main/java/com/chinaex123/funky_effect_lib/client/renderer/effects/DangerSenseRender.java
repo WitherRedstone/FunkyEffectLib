@@ -38,10 +38,9 @@ public class DangerSenseRender {
             updateGlowingEntities(mc.level, mc.player, detectionRadius);
             effectActive = true;
         } else {
-            if (effectActive) {
-                glowingEntities.clear();
-                effectActive = false;
-            }
+            // 效果消失时，立即清空发光实体列表
+            glowingEntities.clear();
+            effectActive = false;
         }
     }
 
