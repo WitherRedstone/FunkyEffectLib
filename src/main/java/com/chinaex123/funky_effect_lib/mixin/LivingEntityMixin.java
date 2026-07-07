@@ -16,12 +16,8 @@ public abstract class LivingEntityMixin {
     private void onIsCurrentlyGlowing(CallbackInfoReturnable<Boolean> cir) {
         LivingEntity entity = (LivingEntity)(Object)this;
 
-        boolean shouldGlow = false;
-
         // 如果 DangerSense 效果激活且实体在列表中，返回 true
-        if (DangerSenseRender.isEffectActive() && DangerSenseRender.shouldEntityGlow(entity)) {
-            shouldGlow = true;
-        }
+        boolean shouldGlow = cir.getReturnValue() || (DangerSenseRender.isEffectActive() && DangerSenseRender.shouldEntityGlow(entity));
 
         cir.setReturnValue(shouldGlow);
     }

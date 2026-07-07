@@ -38,10 +38,8 @@ public class DangerSenseRender {
             updateGlowingEntities(mc.level, mc.player, detectionRadius);
             effectActive = true;
         } else {
-            if (effectActive) {
-                glowingEntities.clear();
-                effectActive = false;
-            }
+            glowingEntities.clear();
+            effectActive = false;
         }
     }
 
