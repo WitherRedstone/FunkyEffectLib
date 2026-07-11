@@ -29,12 +29,22 @@
   "effect.funky_effect_lib.amplified.desc": "冲刺一段时间后提高移动速度",
   "effect.funky_effect_lib.jolt": "震颤",
   "effect.funky_effect_lib.jolt.desc": "受到攻击时产生连锁闪电伤害周围的生物",
+  "effect.funky_effect_lib.blind": "致盲",
+  "effect.funky_effect_lib.blind.desc": "生物将无法攻击和移动",
+  "effect.funky_effect_lib.bolt_charge": "电光充能",
+  "effect.funky_effect_lib.bolt_charge.desc": "缓慢叠加层数，当层数达到10层时消耗所有层数，召唤一道闪电攻击敌人",
   "effect.funky_effect_lib.sever": "瓦解",
   "effect.funky_effect_lib.sever.desc": "大幅降低攻击力",
-  "effect.funky_effect_lib.frost_armor": "冰霜护甲",
-  "effect.funky_effect_lib.frost_armor.desc": "拾取经验球时有概率生成冰晶，每个冰晶提供减伤",
   "effect.funky_effect_lib.woven_mail": "织造铠甲",
   "effect.funky_effect_lib.woven_mail.desc": "拾取经验球时有概率生成缠结，每个缠结提供高额减伤",
+  "effect.funky_effect_lib.slow": "减速",
+  "effect.funky_effect_lib.slow.desc": "降低目标的移动速度，叠至100层时触发冻结效果",
+  "effect.funky_effect_lib.freeze": "冻结",
+  "effect.funky_effect_lib.freeze.desc": "冻结的目标无法移动和攻击。对该目标造成足够伤害会触发碎裂效果",
+  "effect.funky_effect_lib.shatter": "碎裂",
+  "effect.funky_effect_lib.shatter.desc": "当被冻结的目标碎裂时，造成大量伤害",
+  "effect.funky_effect_lib.frost_armor": "冰霜护甲",
+  "effect.funky_effect_lib.frost_armor.desc": "拾取经验球时有概率生成冰晶，每个冰晶提供减伤",
 
   "effect.funky_effect_lib.withered_slash": "枯斩",
   "effect.funky_effect_lib.withered_slash.desc": "攻击敌人可以虚弱敌人并对其造成凋零",
@@ -165,9 +175,11 @@
 
   "entity.funky_effect_lib.afterimage_clone": "残影分身",
 
-  "gui.funky_effect_lib.creeping_darkness": "蔓延黑暗",
-  "gui.funky_effect_lib.pervading_darkness": "弥漫暗影",
+  "gui.funky_effect_lib.pervading_darkness": "弥漫暗影：x %s",
+  "gui.funky_effect_lib.creeping_darkness": "蔓延黑暗：x %s",
   "gui.funky_effect_lib.frost_armor": "冰霜护甲",
   "gui.funky_effect_lib.woven_mail": "织造铠甲",
-  "gui.funky_effect_lib.soulburn": "魂燃"
+  "gui.funky_effect_lib.soulburn": "魂燃",
+  "gui.funky_effect_lib.bolt_charge": "电光充能：x %s",
+  "gui.funky_effect_lib.slow_stacks": "减速层数：%s/%s"
 }

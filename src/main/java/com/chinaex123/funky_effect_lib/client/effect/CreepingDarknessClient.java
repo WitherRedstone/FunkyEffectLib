@@ -1,6 +1,7 @@
 package com.chinaex123.funky_effect_lib.client.effect;
 
 import com.chinaex123.funky_effect_lib.FunkyEffectLib;
+import com.chinaex123.funky_effect_lib.client.config.ClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -19,12 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(value = Dist.CLIENT, modid = FunkyEffectLib.MOD_ID)
 public class CreepingDarknessClient {
-
-    private static final int COLOR_TEXT = 0xFF5555; // 显示颜色
-    private static final int COLOR_BACKGROUND = 0x88000000; // 背景颜色
-    private static final int DISPLAY_X = 10; // 显示位置X
-    private static final int DISPLAY_Y = 110; // 显示位置Y
-    private static final int PADDING = 4; // 背景内边距
 
     private static final Map<UUID, Integer> STACK_CACHE = new ConcurrentHashMap<>();
 
@@ -52,18 +47,24 @@ public class CreepingDarknessClient {
         GuiGraphics guiGraphics = event.getGuiGraphics();
         Font font = minecraft.font;
 
-        String text = Component.translatable("gui.funky_effect_lib.creeping_darkness").getString()
-                + " x" + stack;
+        int colorText = ClientConfig.parseColor(ClientConfig.CREEPING_DARKNESS_COLOR_TEXT.get());
+        int colorBackground = ClientConfig.parseColor(ClientConfig.CREEPING_DARKNESS_COLOR_BACKGROUND.get());
+        int displayX = ClientConfig.CREEPING_DARKNESS_DISPLAY_X.get();
+        int displayY = ClientConfig.CREEPING_DARKNESS_DISPLAY_Y.get();
+        int padding = ClientConfig.CREEPING_DARKNESS_PADDING.get();
 
+        // 文字部分
+        String text = Component.translatable("gui.funky_effect_lib.creeping_darkness", stack).getString();
         int textWidth = font.width(text);
         int lineHeight = font.lineHeight;
 
-        int bgX = DISPLAY_X - PADDING;
-        int bgY = DISPLAY_Y - PADDING / 2;
-        int bgWidth = textWidth + PADDING * 2;
-        int bgHeight = lineHeight + PADDING;
+        // 计算文本总宽度
+        int bgX = displayX - padding;
+        int bgY = displayY - padding / 2;
+        int bgWidth = textWidth + padding * 2;
+        int bgHeight = lineHeight + padding;
 
-        guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, COLOR_BACKGROUND);
-        guiGraphics.drawString(font, text, DISPLAY_X, DISPLAY_Y, COLOR_TEXT);
+        guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, colorBackground);
+        guiGraphics.drawString(font, text, displayX, displayY, colorText);
     }
 }

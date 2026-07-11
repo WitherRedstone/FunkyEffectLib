@@ -56,5 +56,19 @@ public class NetworkHandler {
                 PervadingDarknessSyncPacket.STREAM_CODEC,
                 PervadingDarknessSyncPacket::handle
         );
+
+        // 电光充能的同步包
+        registrar.playToClient(
+                BoltChargeSyncPacket.TYPE,
+                BoltChargeSyncPacket.STREAM_CODEC,
+                BoltChargeSyncPacket::handle
+        );
+
+        // 减速的同步包
+        registrar.playToClient(
+                SlowSyncPacket.TYPE,
+                SlowSyncPacket.STREAM_CODEC,
+                SlowSyncPacket::handle
+        );
     }
 }

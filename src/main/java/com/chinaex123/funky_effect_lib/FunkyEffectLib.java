@@ -1,17 +1,16 @@
 package com.chinaex123.funky_effect_lib;
 
+import com.chinaex123.funky_effect_lib.client.config.ClientConfig;
 import com.chinaex123.funky_effect_lib.entity.AfterimageClone;
 import com.chinaex123.funky_effect_lib.init.FELEffects;
 import com.chinaex123.funky_effect_lib.init.FELEntityTypes;
 import com.chinaex123.funky_effect_lib.init.FELSounds;
 import com.mojang.logging.LogUtils;
-import net.minecraft.world.entity.EntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import org.slf4j.Logger;
 
@@ -25,6 +24,7 @@ public class FunkyEffectLib {
         FELSounds.SOUND_EVENTS.register(modEventBus);
         FELEntityTypes.ENTITY_TYPES.register(modEventBus);
         modEventBus.addListener(FunkyEffectLib::registerAttributes);
+        modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
     }
 
     @SubscribeEvent

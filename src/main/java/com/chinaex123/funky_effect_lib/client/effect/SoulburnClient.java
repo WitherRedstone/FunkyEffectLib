@@ -1,6 +1,7 @@
 package com.chinaex123.funky_effect_lib.client.effect;
 
 import com.chinaex123.funky_effect_lib.FunkyEffectLib;
+import com.chinaex123.funky_effect_lib.client.config.ClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -25,12 +26,7 @@ public class SoulburnClient {
     private static final String SYMBOL_CHARGED = "■"; // 充能符号
     private static final int COLOR_SYMBOL_EMPTY = 0xAAAAAA; // 未充能符号颜色
     private static final int COLOR_SYMBOL_CHARGED = 0x55FF55; // 充能符号颜色
-    private static final int COLOR_TEXT = 0xFFFFFF; // 文字颜色白色
-    private static final int COLOR_BACKGROUND = 0x88000000; // 背景颜色
-    private static final int DISPLAY_X = 10; // 显示位置X
-    private static final int DISPLAY_Y = 90; // 显示位置Y
     private static final int DISPLAY_TICKS = 60; // 未充能时显示的时间
-    private static final int PADDING = 4; // 背景内边距
 
     private static int displayTicks = 0;
     private static boolean isDisplaying = false;
@@ -70,6 +66,12 @@ public class SoulburnClient {
             GuiGraphics guiGraphics = event.getGuiGraphics();
             Font font = minecraft.font;
 
+            int colorText = ClientConfig.parseColor(ClientConfig.SOULBURN_COLOR_TEXT.get());
+            int colorBackground = ClientConfig.parseColor(ClientConfig.SOULBURN_COLOR_BACKGROUND.get());
+            int displayX = ClientConfig.SOULBURN_DISPLAY_X.get();
+            int displayY = ClientConfig.SOULBURN_DISPLAY_Y.get();
+            int padding = ClientConfig.SOULBURN_PADDING.get();
+
             // 文字部分
             String text = Component.translatable("gui.funky_effect_lib.soulburn").getString() + " ";
             // 符号部分
@@ -84,17 +86,15 @@ public class SoulburnClient {
 
             // 绘制半透明黑色背景
             guiGraphics.fill(
-                    DISPLAY_X - PADDING,
-                    DISPLAY_Y - PADDING / 2,
-                    DISPLAY_X + totalWidth + PADDING,
-                    DISPLAY_Y + height + PADDING / 2,
-                    COLOR_BACKGROUND
+                    displayX - padding,
+                    displayY - padding / 2,
+                    displayX + totalWidth + padding,
+                    displayY + height + padding / 2,
+                    colorBackground
             );
 
-            // 先渲染文字（白色）
-            guiGraphics.drawString(font, text, DISPLAY_X, DISPLAY_Y, COLOR_TEXT);
-            // 再渲染符号（带颜色）
-            guiGraphics.drawString(font, symbol, DISPLAY_X + textWidth, DISPLAY_Y, symbolColor);
+            guiGraphics.drawString(font, text, displayX, displayY, colorText);
+            guiGraphics.drawString(font, symbol, displayX + textWidth, displayY, symbolColor);
         }
     }
 }

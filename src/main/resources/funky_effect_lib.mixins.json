@@ -3,7 +3,8 @@
   "package": "com.chinaex123.funky_effect_lib.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ItemStackMixin"
+    "ItemStackMixin",
+    "MobMixin"
   ],
   "client": [
     "FogRendererMixin",
