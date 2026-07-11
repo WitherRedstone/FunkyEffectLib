@@ -23,6 +23,7 @@ public class NetworkHandler {
 
     private static int packetId = 0;
 
+    /** 注册网络包 **/
     @SubscribeEvent
     public static void register(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
@@ -67,6 +68,21 @@ public class NetworkHandler {
                     PervadingDarknessSyncPacket::decode,
                     PervadingDarknessSyncPacket::handle
             );
+
+            // 电光充能的同步包
+            CHANNEL.registerMessage(packetId++, BoltChargeSyncPacket.class,
+                    BoltChargeSyncPacket::encode,
+                    BoltChargeSyncPacket::decode,
+                    BoltChargeSyncPacket::handle
+            );
+
+            // 减速的同步包
+            CHANNEL.registerMessage(packetId++, SlowSyncPacket.class,
+                    SlowSyncPacket::encode,
+                    SlowSyncPacket::decode,
+                    SlowSyncPacket::handle
+            );
+
         });
     }
 }

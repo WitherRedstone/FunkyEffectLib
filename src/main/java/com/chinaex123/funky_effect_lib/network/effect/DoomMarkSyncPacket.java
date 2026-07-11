@@ -8,40 +8,24 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 /** 厄运预兆的同步包 **/
-public class DoomMarkSyncPacket {
-    private final UUID entityUuid;
-    private final boolean hasMark;
-
-    public DoomMarkSyncPacket(UUID entityUuid, boolean hasMark) {
-        this.entityUuid = entityUuid;
-        this.hasMark = hasMark;
-    }
-
-    // 编码方法（实例方法）
+public record DoomMarkSyncPacket(UUID entityUuid, boolean hasMark) {
+    /** 将数据编码到网络缓冲区 **/
     public void encode(FriendlyByteBuf buf) {
         buf.writeUUID(entityUuid);
         buf.writeBoolean(hasMark);
     }
 
-    // 解码方法（静态方法）
+    /** 从网络缓冲区解码数据 **/
     public static DoomMarkSyncPacket decode(FriendlyByteBuf buf) {
         return new DoomMarkSyncPacket(buf.readUUID(), buf.readBoolean());
     }
 
-    // 处理方法（静态方法）
+    /** 处理接收到的同步包，更新客户端厄运预兆状态 **/
     public static void handle(DoomMarkSyncPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context context = contextSupplier.get();
         context.enqueueWork(() -> {
-            DoomForetoldClient.setClientMark(packet.entityUuid, packet.hasMark);
+            DoomForetoldClient.setClientMark(packet.entityUuid(), packet.hasMark());
         });
         context.setPacketHandled(true);
-    }
-
-    public UUID getEntityUuid() {
-        return entityUuid;
-    }
-
-    public boolean hasMark() {
-        return hasMark;
     }
 }

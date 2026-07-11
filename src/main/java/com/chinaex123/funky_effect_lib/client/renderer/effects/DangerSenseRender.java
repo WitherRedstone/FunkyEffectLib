@@ -49,13 +49,11 @@ public class DangerSenseRender {
 
         AABB searchArea = player.getBoundingBox().inflate(radius);
 
-        for (Mob entity : level.getEntitiesOfClass(Mob.class, searchArea, entity -> {
+        newGlowingEntities.addAll(level.getEntitiesOfClass(Mob.class, searchArea, entity -> {
             if (entity == player) return false;
             if (entity.isRemoved()) return false;
             return entity.getType().getCategory() == MobCategory.MONSTER;
-        })) {
-            newGlowingEntities.add(entity);
-        }
+        }));
 
         glowingEntities.clear();
         glowingEntities.addAll(newGlowingEntities);

@@ -13,6 +13,8 @@
   "effect.funky_effect_lib.devour.desc": "Killing enemies restores health, extends duration, and stacks movement speed",
   "effect.funky_effect_lib.suppression": "Suppression",
   "effect.funky_effect_lib.suppression.desc": "Mobs stop moving and have reduced armor value",
+  "effect.funky_effect_lib.vulnerable": "Vulnerable",
+  "effect.funky_effect_lib.vulnerable.desc": "Mobs take extra damage and have reduced movement speed",
   "effect.funky_effect_lib.cure": "Cure",
   "effect.funky_effect_lib.cure.desc": "Instantly restores a certain amount of health",
   "effect.funky_effect_lib.restoration": "Restoration",
@@ -27,14 +29,22 @@
   "effect.funky_effect_lib.amplified.desc": "Increases movement speed after sprinting for a period of time",
   "effect.funky_effect_lib.jolt": "Jolt",
   "effect.funky_effect_lib.jolt.desc": "Creates chain lightning damage to surrounding mobs when attacked",
+  "effect.funky_effect_lib.blind": "Blind",
+  "effect.funky_effect_lib.blind.desc": "The entity cannot attack or move",
+  "effect.funky_effect_lib.bolt_charge": "Bolt Charge",
+  "effect.funky_effect_lib.bolt_charge.desc": "Builds to 10 stacks, then strikes with lightning.",
   "effect.funky_effect_lib.sever": "Sever",
   "effect.funky_effect_lib.sever.desc": "Significantly reduces attack damage",
-  "effect.funky_effect_lib.vulnerable": "Vulnerable",
-  "effect.funky_effect_lib.vulnerable.desc": "Mobs take extra damage and have reduced movement speed",
-  "effect.funky_effect_lib.frost_armor": "Frost Armor",
-  "effect.funky_effect_lib.frost_armor.desc": "Picking up experience points has a chance to generate ice crystals, each providing damage reduction",
   "effect.funky_effect_lib.woven_mail": "Woven Mail",
   "effect.funky_effect_lib.woven_mail.desc": "Picking up experience points has a chance to generate tangles, each providing high damage reduction",
+  "effect.funky_effect_lib.slow": "Slow",
+  "effect.funky_effect_lib.slow.desc": "Reduces target's movement speed, triggers Freeze effect when stacked to 100 layers",
+  "effect.funky_effect_lib.freeze": "Freeze",
+  "effect.funky_effect_lib.freeze.desc": "Frozen targets cannot move or attack. Dealing sufficient damage triggers Shatter effect",
+  "effect.funky_effect_lib.shatter": "Shatter",
+  "effect.funky_effect_lib.shatter.desc": "Deals massive damage when frozen target shatters",
+  "effect.funky_effect_lib.frost_armor": "Frost Armor",
+  "effect.funky_effect_lib.frost_armor.desc": "Picking up experience points has a chance to generate ice crystals, each providing damage reduction",
 
   "effect.funky_effect_lib.withered_slash": "Withered Slash",
   "effect.funky_effect_lib.withered_slash.desc": "Attacking enemies weakens them and inflicts withering",
@@ -161,9 +171,12 @@
 
   "entity.funky_effect_lib.afterimage_clone": "Afterimage Clone",
 
-  "gui.funky_effect_lib.creeping_darkness": "Creeping Darkness",
-  "gui.funky_effect_lib.pervading_darkness": "Pervading Shadow",
+  "gui.funky_effect_lib.pervading_darkness": "Pervading Shadow: x %s",
+  "gui.funky_effect_lib.creeping_darkness": "Creeping Darkness: x %s",
   "gui.funky_effect_lib.frost_armor": "Frost Armor",
   "gui.funky_effect_lib.woven_mail": "Woven Mail",
-  "gui.funky_effect_lib.soulburn": "Soulburn"
+  "gui.funky_effect_lib.soulburn": "Soulburn",
+  "gui.funky_effect_lib.bolt_charge": "Bolt Charge: x %s",
+  "gui.funky_effect_lib.slow_stacks": "Slow Stacks: %s/%s"
+
 }

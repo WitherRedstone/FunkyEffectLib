@@ -1,6 +1,7 @@
 package com.chinaex123.funky_effect_lib.client.effect;
 
 import com.chinaex123.funky_effect_lib.FunkyEffectLib;
+import com.chinaex123.funky_effect_lib.client.config.ClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -25,12 +26,7 @@ public class FrostArmorClient {
     private static final String SYMBOL_CHARGED = "■"; // 充能符号
     private static final int COLOR_SYMBOL_EMPTY = 0xAAAAAA; // 未充能符号颜色
     private static final int COLOR_SYMBOL_CHARGED = 0x55AAFF; // 充能符号颜色
-    private static final int COLOR_TEXT = 0xFFFFFF; // 文字颜色
-    private static final int COLOR_BACKGROUND = 0x88000000; // 背景颜色
-    private static final int DISPLAY_X = 10; // 显示位置X
-    private static final int DISPLAY_Y = 50; // 显示位置Y
     private static final int DISPLAY_TICKS = 60; // 未充能时显示的时间
-    private static final int PADDING = 4; // 背景内边距
     private static final int MAX_CRYSTALS = 10; // 固定最多10个
 
     private static final Map<UUID, Integer> CRYSTAL_CACHE = new ConcurrentHashMap<>();
@@ -74,8 +70,14 @@ public class FrostArmorClient {
             GuiGraphics guiGraphics = event.getGuiGraphics();
             Font font = minecraft.font;
 
+            int colorText = ClientConfig.parseColor(ClientConfig.FROST_ARMOR_COLOR_TEXT.get());
+            int colorBackground = ClientConfig.parseColor(ClientConfig.FROST_ARMOR_COLOR_BACKGROUND.get());
+            int displayX = ClientConfig.FROST_ARMOR_DISPLAY_X.get();
+            int displayY = ClientConfig.FROST_ARMOR_DISPLAY_Y.get();
+            int padding = ClientConfig.FROST_ARMOR_PADDING.get();
+
             // 文字部分
-            String text = Component.translatable("gui.funky_effect_lib.frost_armor").getString() + " ";
+            String text = Component.translatable("gui.funky_effect_lib.frost_armor").getString();
             int textWidth = font.width(text);
             int lineHeight = font.lineHeight;
             int symbolWidth = font.width(SYMBOL_CHARGED);
@@ -87,16 +89,16 @@ public class FrostArmorClient {
             int totalHeight = lineHeight * totalRows;
 
             // 绘制背景
-            int bgX = DISPLAY_X - PADDING;
-            int bgY = DISPLAY_Y - PADDING / 2;
-            int bgWidth = totalWidth + PADDING * 2;
-            int bgHeight = totalHeight + PADDING;
+            int bgX = displayX - padding;
+            int bgY = displayY - padding / 2;
+            int bgWidth = totalWidth + padding * 2;
+            int bgHeight = totalHeight + padding;
 
-            guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, COLOR_BACKGROUND);
+            guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, colorBackground);
 
             // 计算文字垂直居中的 Y 位置
-            int textY = DISPLAY_Y + (totalHeight - lineHeight) / 2;
-            guiGraphics.drawString(font, text, DISPLAY_X, textY, COLOR_TEXT);
+            int textY = displayY + (totalHeight - lineHeight) / 2;
+            guiGraphics.drawString(font, text, displayX, textY, colorText);
 
             // 渲染符号（5x2 网格）
             for (int i = 0; i < MAX_CRYSTALS; i++) {
@@ -107,8 +109,8 @@ public class FrostArmorClient {
                 String symbol = hasCrystal ? SYMBOL_CHARGED : SYMBOL_EMPTY;
                 int color = hasCrystal ? COLOR_SYMBOL_CHARGED : COLOR_SYMBOL_EMPTY;
 
-                int symbolX = DISPLAY_X + textWidth + col * symbolWidth;
-                int symbolY = DISPLAY_Y + row * lineHeight;
+                int symbolX = displayX + textWidth + col * symbolWidth;
+                int symbolY = displayY + row * lineHeight;
 
                 guiGraphics.drawString(font, symbol, symbolX, symbolY, color);
             }

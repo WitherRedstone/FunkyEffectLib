@@ -16,47 +16,51 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** 弥漫暗影客户端处理类 **/
+/** 电光充能客户端处理类 **/
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = FunkyEffectLib.MOD_ID)
-public class PervadingDarknessClient {
+public class BoltChargeClient {
 
+    private static final int MAX_CHARGES = 10; // 最大充能次数
 
+    /** 缓存每个玩家的充能层数 **/
+    private static final Map<UUID, Integer> CHARGE_CACHE = new ConcurrentHashMap<>();
 
-    private static final Map<UUID, Integer> STACK_CACHE = new ConcurrentHashMap<>();
-
-    public static void setStack(UUID playerUuid, int stack) {
+    /** 设置指定玩家的充能层数 **/
+    public static void setChargeCount(UUID playerUuid, int count) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null && minecraft.player.getUUID().equals(playerUuid)) {
-            if (stack <= 0) {
-                STACK_CACHE.remove(playerUuid);
-            } else {
-                STACK_CACHE.put(playerUuid, stack);
-            }
+            CHARGE_CACHE.put(playerUuid, Math.min(count, MAX_CHARGES));
         }
     }
 
+    /** 清除指定玩家的充能数据 **/
+    public static void clearCharges(UUID playerUuid) {
+        CHARGE_CACHE.remove(playerUuid);
+    }
+
+    /** 在游戏界面上渲染充能层数显示 **/
     @SubscribeEvent
     public static void onRenderGui(RenderGuiEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) return;
 
         UUID playerUuid = minecraft.player.getUUID();
-        Integer stack = STACK_CACHE.get(playerUuid);
+        Integer chargeCount = CHARGE_CACHE.get(playerUuid);
 
-        if (stack == null || stack <= 0) return;
+        if (chargeCount == null || chargeCount <= 0) return;
 
         GuiGraphics guiGraphics = event.getGuiGraphics();
         Font font = minecraft.font;
 
-        int colorText = ClientConfig.parseColor(ClientConfig.PERVADING_DARKNESS_COLOR_TEXT.get());
-        int colorBackground = ClientConfig.parseColor(ClientConfig.PERVADING_DARKNESS_COLOR_BACKGROUND.get());
-        int displayX = ClientConfig.PERVADING_DARKNESS_DISPLAY_X.get();
-        int displayY = ClientConfig.PERVADING_DARKNESS_DISPLAY_Y.get();
-        int padding = ClientConfig.PERVADING_DARKNESS_PADDING.get();
+        int colorText = ClientConfig.parseColor(ClientConfig.BOLT_CHARGE_COLOR_TEXT.get());
+        int colorBackground = ClientConfig.parseColor(ClientConfig.BOLT_CHARGE_COLOR_BACKGROUND.get());
+        int displayX = ClientConfig.BOLT_CHARGE_DISPLAY_X.get();
+        int displayY = ClientConfig.BOLT_CHARGE_DISPLAY_Y.get();
+        int padding = ClientConfig.BOLT_CHARGE_PADDING.get();
 
         // 文字部分
-        String text = Component.translatable("gui.funky_effect_lib.pervading_darkness", stack).getString();
+        String text = Component.translatable("gui.funky_effect_lib.bolt_charge", chargeCount).getString();
         int textWidth = font.width(text);
         int lineHeight = font.lineHeight;
 
