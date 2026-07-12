@@ -1,6 +1,8 @@
 package com.chinaex123.funky_effect_lib.api;
 
 import com.chinaex123.funky_effect_lib.FunkyEffectLib;
+import com.chinaex123.funky_effect_lib.api.event.BoltCharge.BoltChargeDischargedEvent;
+import com.chinaex123.funky_effect_lib.api.event.BoltCharge.BoltChargeReceivedEvent;
 import com.chinaex123.funky_effect_lib.effect.BoltCharge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -12,6 +14,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 
 /** 电光充能公共 API 类 **/
 public class BoltChargeAPI {
@@ -66,13 +69,23 @@ public class BoltChargeAPI {
         int newCount = Math.min(current + amount, MAX_CHARGES);
         setChargeCountInternal(entity, newCount);
         BoltCharge.syncToClient(entity, newCount);
+
+        if (amount > 0) {
+            NeoForge.EVENT_BUS.post(new BoltChargeReceivedEvent(entity, amount, current, newCount));
+        }
     }
 
     /** 设置实体的充能层数为指定值 **/
     public static void setChargeCount(LivingEntity entity, int count) {
+        int current = getChargeCount(entity);
         int newCount = Math.min(count, MAX_CHARGES);
         setChargeCountInternal(entity, newCount);
         BoltCharge.syncToClient(entity, newCount);
+
+        if (newCount != current) {
+            int amountAdded = newCount - current;
+            NeoForge.EVENT_BUS.post(new BoltChargeReceivedEvent(entity, amountAdded, current, newCount));
+        }
     }
 
     /** 清除实体的所有充能数据 **/
@@ -108,5 +121,7 @@ public class BoltChargeAPI {
 
         clearCharges(attacker);
         BoltCharge.syncToClient(attacker, 0);
+
+        NeoForge.EVENT_BUS.post(new BoltChargeDischargedEvent(attacker, MAX_CHARGES, target, lightning));
     }
 }
