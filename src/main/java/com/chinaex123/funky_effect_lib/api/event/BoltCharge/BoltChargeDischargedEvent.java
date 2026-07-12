@@ -7,11 +7,13 @@ import net.minecraft.world.entity.LightningBolt;
 public class BoltChargeDischargedEvent extends BoltChargeEvent {
     private final LivingEntity target;
     private final LightningBolt lightning;
+    private final int previousCount;
 
-    public BoltChargeDischargedEvent(LivingEntity entity, int chargeCount, LivingEntity target, LightningBolt lightning) {
+    public BoltChargeDischargedEvent(LivingEntity entity, int chargeCount, LivingEntity target, LightningBolt lightning, int previousCount) {
         super(entity, chargeCount);
         this.target = target;
         this.lightning = lightning;
+        this.previousCount = previousCount;
     }
 
     public LivingEntity getTarget() {
@@ -24,5 +26,9 @@ public class BoltChargeDischargedEvent extends BoltChargeEvent {
 
     public boolean hasTarget() {
         return target != null;
+    }
+
+    public int getPreviousCount() {
+        return previousCount;
     }
 }
