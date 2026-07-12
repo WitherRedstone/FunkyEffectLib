@@ -119,9 +119,10 @@ public class BoltChargeAPI {
                     SoundSource.MASTER, 1.0f, 1.0f);
         }
 
+        int previousCount = getChargeCount(attacker);
         clearCharges(attacker);
         BoltCharge.syncToClient(attacker, 0);
         
-        MinecraftForge.EVENT_BUS.post(new BoltChargeDischargedEvent(attacker, MAX_CHARGES, target, lightning));
+        MinecraftForge.EVENT_BUS.post(new BoltChargeDischargedEvent(attacker, MAX_CHARGES, target, lightning, previousCount));
     }
 }
