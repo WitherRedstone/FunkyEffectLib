@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 /** 渲染的残影分身皮肤 **/
 public class AfterimageCloneRenderer extends LivingEntityRenderer<AfterimageClone, PlayerModel<AfterimageClone>> {
 
-    private static final ResourceLocation STEVE_SKIN = ResourceLocation.withDefaultNamespace("textures/entity/player/wide/steve.png");
-    private static final ResourceLocation ALEX_SKIN = ResourceLocation.withDefaultNamespace("textures/entity/player/slim/alex.png");
+    private static final ResourceLocation STEVE_SKIN = ResourceLocation.parse("textures/entity/player/wide/steve.png");
+    private static final ResourceLocation ALEX_SKIN = ResourceLocation.parse("textures/entity/player/slim/alex.png");
 
     public AfterimageCloneRenderer(EntityRendererProvider.Context context) {
         super(context, new PlayerModel<>(context.bakeLayer(ModelLayers.PLAYER), false), 0.5f);
@@ -22,18 +22,14 @@ public class AfterimageCloneRenderer extends LivingEntityRenderer<AfterimageClon
 
     @Override
     public @NotNull ResourceLocation getTextureLocation(AfterimageClone entity) {
-        // 获取玩家皮肤
         String ownerName = entity.getOwnerName();
         if (ownerName != null && !ownerName.isEmpty()) {
+            // 直接使用 Minecraft 的皮肤管理器获取
             if (Minecraft.getInstance().getConnection() != null) {
                 var playerInfo = Minecraft.getInstance().getConnection().getPlayerInfo(ownerName);
                 if (playerInfo != null) {
-                    var skin = playerInfo.getProfile().getProperties().get("textures").stream()
-                            .findFirst()
-                            .orElse(null);
-                    if (skin != null) {
-                        return ResourceLocation.parse(skin.getValue());
-                    }
+                    // 直接返回玩家皮肤位置
+                    return playerInfo.getSkinLocation();
                 }
             }
         }
