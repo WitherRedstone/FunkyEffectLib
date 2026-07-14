@@ -13,8 +13,8 @@ import org.jetbrains.annotations.NotNull;
 /** 渲染的残影分身皮肤 **/
 public class AfterimageCloneRenderer extends LivingEntityRenderer<AfterimageClone, PlayerModel<AfterimageClone>> {
 
-    private static final ResourceLocation STEVE_SKIN = ResourceLocation.withDefaultNamespace("textures/entity/player/wide/steve.png");
-    private static final ResourceLocation ALEX_SKIN = ResourceLocation.withDefaultNamespace("textures/entity/player/slim/alex.png");
+    private static final ResourceLocation STEVE_SKIN = ResourceLocation.parse("textures/entity/player/wide/steve.png");
+    private static final ResourceLocation ALEX_SKIN = ResourceLocation.parse("textures/entity/player/slim/alex.png");
 
     public AfterimageCloneRenderer(EntityRendererProvider.Context context) {
         super(context, new PlayerModel<>(context.bakeLayer(ModelLayers.PLAYER), false), 0.5f);
