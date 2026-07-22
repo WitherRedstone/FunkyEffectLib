@@ -4,16 +4,10 @@ import com.chinaex123.funky_effect_lib.FunkyEffectLib;
 import com.chinaex123.funky_effect_lib.api.event.BoltCharge.BoltChargeDischargedEvent;
 import com.chinaex123.funky_effect_lib.api.event.BoltCharge.BoltChargeReceivedEvent;
 import com.chinaex123.funky_effect_lib.effect.BoltCharge;
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 
 /** 电光充能公共 API 类 **/
@@ -97,28 +91,8 @@ public class BoltChargeAPI {
 
     /** 在目标实体位置召唤一道闪电，由攻击者触发 **/
     public static void triggerLightning(LivingEntity target, LivingEntity attacker) {
-        if (target.level().isClientSide()) {
-            return;
-        }
-
-        BlockPos pos = target.blockPosition();
-        EntityType<LightningBolt> lightningType = EntityType.LIGHTNING_BOLT;
-        LightningBolt lightning = lightningType.create(target.level());
-
-        if (lightning != null) {
-            lightning.moveTo(Vec3.atBottomCenterOf(pos));
-            lightning.setDamage(LIGHTNING_DAMAGE);
-            if (attacker instanceof ServerPlayer) {
-                lightning.setCause((ServerPlayer) attacker);
-            }
-            target.level().addFreshEntity(lightning);
-
-            target.level().playSound(null, pos, SoundEvents.LIGHTNING_BOLT_THUNDER,
-                    SoundSource.MASTER, 1.0f, 1.0f);
-            target.level().playSound(null, pos, SoundEvents.LIGHTNING_BOLT_IMPACT,
-                    SoundSource.MASTER, 1.0f, 1.0f);
-        }
-
+        LightningBolt lightning = LightningStrikeAPI.strike(target, attacker, LIGHTNING_DAMAGE);
+        
         int previousCount = getChargeCount(attacker);
         clearCharges(attacker);
         BoltCharge.syncToClient(attacker, 0);
