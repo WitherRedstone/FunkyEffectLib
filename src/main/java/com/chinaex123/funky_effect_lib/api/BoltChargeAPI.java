@@ -14,14 +14,9 @@ import net.minecraftforge.common.MinecraftForge;
 public class BoltChargeAPI {
 
     /** 充能层数在持久化数据中的存储键 **/
-    public static final ResourceLocation CHARGE_COUNT_KEY = ResourceLocation.fromNamespaceAndPath(
-            FunkyEffectLib.MOD_ID, "bolt_charge_count"
-    );
-
+    public static final ResourceLocation CHARGE_COUNT_KEY = FunkyEffectLib.id("bolt_charge_count");
     /** 上次充能时间在持久化数据中的存储键 **/
-    public static final ResourceLocation LAST_CHARGE_TIME_KEY = ResourceLocation.fromNamespaceAndPath(
-            FunkyEffectLib.MOD_ID, "bolt_charge_last_time"
-    );
+    public static final ResourceLocation LAST_CHARGE_TIME_KEY = FunkyEffectLib.id("bolt_charge_last_time");
 
     /** 最大充能层数 **/
     public static final int MAX_CHARGES = 10;
@@ -91,7 +86,7 @@ public class BoltChargeAPI {
 
     /** 在目标实体位置召唤一道闪电，由攻击者触发 **/
     public static void triggerLightning(LivingEntity target, LivingEntity attacker) {
-        LightningBolt lightning = LightningStrikeAPI.strike(target, attacker, LIGHTNING_DAMAGE);
+        LightningBolt lightning = LightningStrikeAPI.strike(target, attacker, LIGHTNING_DAMAGE, true, false);
         
         int previousCount = getChargeCount(attacker);
         clearCharges(attacker);

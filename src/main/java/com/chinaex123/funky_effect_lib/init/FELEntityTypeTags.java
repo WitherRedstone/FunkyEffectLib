@@ -6,11 +6,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 
+@SuppressWarnings("removal")
 public interface FELEntityTypeTags {
 
     TagKey<EntityType<?>> PERVADING_DARKNESS_MOB = createTag("pervading_darkness_mob");
 
     private static TagKey<EntityType<?>> createTag(String name) {
-        return TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(FunkyEffectLib.MOD_ID, name));
+        return TagKey.create(Registries.ENTITY_TYPE, new ResourceLocation(FunkyEffectLib.MOD_ID, name));
     }
 }

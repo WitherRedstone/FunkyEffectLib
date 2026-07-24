@@ -7,6 +7,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
+@SuppressWarnings("removal")
 public class FELSounds {
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS =
             DeferredRegister.create(Registries.SOUND_EVENT, FunkyEffectLib.MOD_ID);
@@ -14,7 +15,7 @@ public class FELSounds {
     public static final RegistryObject<SoundEvent> IGNITE_EXPLODE = register("fel.effect.ignite_explode");
 
     private static RegistryObject<SoundEvent> register(String name) {
-        ResourceLocation location = ResourceLocation.fromNamespaceAndPath(FunkyEffectLib.MOD_ID, name);
+        ResourceLocation location = new ResourceLocation(FunkyEffectLib.MOD_ID, name);
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(location));
     }
 }

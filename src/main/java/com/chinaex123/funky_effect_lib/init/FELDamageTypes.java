@@ -1,10 +1,12 @@
 package com.chinaex123.funky_effect_lib.init;
 
+import com.chinaex123.funky_effect_lib.FunkyEffectLib;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageType;
 
+@SuppressWarnings("removal")
 public class FELDamageTypes {
 
     /** 震颤伤害类型：无击退效果 **/
@@ -23,8 +25,6 @@ public class FELDamageTypes {
     public static final ResourceKey<DamageType> REAL_DAMAGE = create("real_damage");
 
     private static ResourceKey<DamageType> create(String name) {
-        return ResourceKey.create(
-                Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("funky_effect_lib", name)
-        );
+        return ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation(FunkyEffectLib.MOD_ID, name));
     }
 }

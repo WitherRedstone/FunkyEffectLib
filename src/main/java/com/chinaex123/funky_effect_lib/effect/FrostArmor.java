@@ -27,9 +27,7 @@ import java.util.Arrays;
 @Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class FrostArmor extends MobEffect {
 
-    private static final ResourceLocation CRYSTAL_EXPIRY_ARRAY_KEY = ResourceLocation.fromNamespaceAndPath(
-            FunkyEffectLib.MOD_ID, "frost_armor_crystal_expiry_array"
-    );
+    private static final ResourceLocation CRYSTAL_EXPIRY_ARRAY_KEY = FunkyEffectLib.id("frost_armor_crystal_expiry_array");
 
     private static final float BASE_CRYSTAL_CHANCE = 0.25f; // 基础冰晶生成概率
     private static final float CHANCE_PER_LEVEL = 0.05f; // 每级增加的冰晶生成概率

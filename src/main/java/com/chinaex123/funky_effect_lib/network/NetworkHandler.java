@@ -15,7 +15,7 @@ public class NetworkHandler {
 
     private static final String PROTOCOL_VERSION = "1.0";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            ResourceLocation.fromNamespaceAndPath(FunkyEffectLib.MOD_ID, "main"),
+            FunkyEffectLib.id("main"),
             () -> PROTOCOL_VERSION,
             PROTOCOL_VERSION::equals,
             PROTOCOL_VERSION::equals

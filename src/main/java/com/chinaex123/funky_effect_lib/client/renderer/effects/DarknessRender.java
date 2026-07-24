@@ -21,9 +21,7 @@ import java.util.stream.Stream;
 public class DarknessRender {
 
     // 黑暗效果的纹理路径
-    private static final ResourceLocation DARKNESS_TEXTURE = ResourceLocation.fromNamespaceAndPath(
-            "funky_effect_lib", "textures/misc/darkness_overlay.png"
-    );
+    private static final ResourceLocation DARKNESS_TEXTURE = FunkyEffectLib.id("textures/misc/darkness_overlay.png");
 
     @SubscribeEvent
     public static void onRenderGui(RenderGuiEvent.Post event) {
