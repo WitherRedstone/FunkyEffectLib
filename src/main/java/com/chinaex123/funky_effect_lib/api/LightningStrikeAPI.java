@@ -18,16 +18,21 @@ public class LightningStrikeAPI {
 
     /** 在目标实体位置召唤一道闪电（使用默认伤害） **/
     public static LightningBolt strike(LivingEntity target, LivingEntity attacker) {
-        return strike(target, attacker, DEFAULT_DAMAGE);
+        return strike(target, attacker, DEFAULT_DAMAGE, true, false);
     }
 
     /** 在目标实体位置召唤一道闪电（自定义伤害） **/
     public static LightningBolt strike(LivingEntity target, LivingEntity attacker, float damage) {
-        return strike(target, attacker, damage, true);
+        return strike(target, attacker, damage, true, false);
     }
 
     /** 在目标实体位置召唤一道闪电（自定义伤害和是否播放声音） **/
     public static LightningBolt strike(LivingEntity target, LivingEntity attacker, float damage, boolean playSound) {
+        return strike(target, attacker, damage, playSound, false);
+    }
+
+    /** 在目标实体位置召唤一道闪电（自定义伤害、是否播放声音、是否产生火焰） **/
+    public static LightningBolt strike(LivingEntity target, LivingEntity attacker, float damage, boolean playSound, boolean hasFire) {
         if (target.level().isClientSide()) {
             return null;
         }
@@ -38,11 +43,13 @@ public class LightningStrikeAPI {
 
         if (lightning != null) {
             lightning.moveTo(Vec3.atBottomCenterOf(pos));
-            lightning.setDamage(damage);
+            lightning.setVisualOnly(!hasFire);
             if (attacker instanceof ServerPlayer) {
                 lightning.setCause((ServerPlayer) attacker);
             }
             target.level().addFreshEntity(lightning);
+
+            target.hurt(target.level().damageSources().lightningBolt(), damage);
 
             if (playSound) {
                 target.level().playSound(null, pos, SoundEvents.LIGHTNING_BOLT_THUNDER,
@@ -57,16 +64,21 @@ public class LightningStrikeAPI {
 
     /** 在指定位置召唤一道闪电（使用默认伤害） **/
     public static LightningBolt strikeAtPosition(Level level, BlockPos pos, LivingEntity attacker) {
-        return strikeAtPosition(level, pos, attacker, DEFAULT_DAMAGE);
+        return strikeAtPosition(level, pos, attacker, DEFAULT_DAMAGE, true, false);
     }
 
     /** 在指定位置召唤一道闪电（自定义伤害） **/
     public static LightningBolt strikeAtPosition(Level level, BlockPos pos, LivingEntity attacker, float damage) {
-        return strikeAtPosition(level, pos, attacker, damage, true);
+        return strikeAtPosition(level, pos, attacker, damage, true, false);
     }
 
     /** 在指定位置召唤一道闪电（自定义伤害和是否播放声音） **/
     public static LightningBolt strikeAtPosition(Level level, BlockPos pos, LivingEntity attacker, float damage, boolean playSound) {
+        return strikeAtPosition(level, pos, attacker, damage, playSound, false);
+    }
+
+    /** 在指定位置召唤一道闪电（自定义伤害、是否播放声音、是否产生火焰） **/
+    public static LightningBolt strikeAtPosition(Level level, BlockPos pos, LivingEntity attacker, float damage, boolean playSound, boolean hasFire) {
         if (level.isClientSide) {
             return null;
         }
@@ -76,18 +88,18 @@ public class LightningStrikeAPI {
 
         if (lightning != null) {
             lightning.moveTo(Vec3.atBottomCenterOf(pos));
-            lightning.setDamage(damage);
+            lightning.setVisualOnly(!hasFire);
             if (attacker instanceof ServerPlayer) {
                 lightning.setCause((ServerPlayer) attacker);
             }
             level.addFreshEntity(lightning);
+        }
 
-            if (playSound) {
-                level.playSound(null, pos, SoundEvents.LIGHTNING_BOLT_THUNDER,
-                        SoundSource.MASTER, 1.0f, 1.0f);
-                level.playSound(null, pos, SoundEvents.LIGHTNING_BOLT_IMPACT,
-                        SoundSource.MASTER, 1.0f, 1.0f);
-            }
+        if (playSound) {
+            level.playSound(null, pos, SoundEvents.LIGHTNING_BOLT_THUNDER,
+                    SoundSource.MASTER, 1.0f, 1.0f);
+            level.playSound(null, pos, SoundEvents.LIGHTNING_BOLT_IMPACT,
+                    SoundSource.MASTER, 1.0f, 1.0f);
         }
 
         return lightning;

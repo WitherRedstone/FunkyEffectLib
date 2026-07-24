@@ -187,14 +187,6 @@ public class ClientConfig {
                 .defineInRange("padding", 4, 0, 50);
         builder.pop();
 
-
-
-
-
-
-
-
-
         builder.pop();
 
         SPEC = builder.build();

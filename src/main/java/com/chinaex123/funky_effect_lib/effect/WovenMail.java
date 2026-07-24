@@ -26,9 +26,7 @@ import java.util.Arrays;
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class WovenMail extends MobEffect {
 
-    private static final ResourceLocation TANGLE_EXPIRY_ARRAY_KEY = ResourceLocation.fromNamespaceAndPath(
-            FunkyEffectLib.MOD_ID, "woven_mail_tangle_expiry_array"
-    );
+    private static final ResourceLocation TANGLE_EXPIRY_ARRAY_KEY = FunkyEffectLib.id("woven_mail_tangle_expiry_array");
 
     private static final float BASE_TANGLE_CHANCE = 0.25f; // 基础缠结生成概率
     private static final float CHANCE_PER_LEVEL = 0.05f; // 每级增加的缠结生成概率

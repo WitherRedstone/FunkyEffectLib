@@ -91,7 +91,7 @@ public class BoltChargeAPI {
 
     /** 在目标实体位置召唤一道闪电，由攻击者触发 **/
     public static void triggerLightning(LivingEntity target, LivingEntity attacker) {
-        LightningBolt lightning = LightningStrikeAPI.strike(target, attacker, LIGHTNING_DAMAGE);
+        LightningBolt lightning = LightningStrikeAPI.strike(target, attacker, LIGHTNING_DAMAGE, true, false);
 
         int previousCount = getChargeCount(attacker);
         clearCharges(attacker);

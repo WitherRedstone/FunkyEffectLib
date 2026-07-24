@@ -1,5 +1,6 @@
 package com.chinaex123.funky_effect_lib.init;
 
+import com.chinaex123.funky_effect_lib.FunkyEffectLib;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +25,7 @@ public class FELDamageTypes {
 
     private static ResourceKey<DamageType> create(String name) {
         return ResourceKey.create(
-                Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("funky_effect_lib", name)
+                Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(FunkyEffectLib.MOD_ID, name)
         );
     }
 }

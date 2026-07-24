@@ -10,9 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 public class SlowAPI {
 
     /** 减速层数在持久化数据中的存储键 **/
-    public static final ResourceLocation STACKS_KEY = ResourceLocation.fromNamespaceAndPath(
-            FunkyEffectLib.MOD_ID, "slow_stacks"
-    );
+    public static final ResourceLocation STACKS_KEY = FunkyEffectLib.id("slow_stacks");
 
     /** 最大减速层数 **/
     public static final int MAX_STACKS = 100;
