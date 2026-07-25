@@ -71,8 +71,9 @@ public class SoulburnClient {
             int displayX = ClientConfig.SOULBURN_DISPLAY_X.get();
             int displayY = ClientConfig.SOULBURN_DISPLAY_Y.get();
             int padding = ClientConfig.SOULBURN_PADDING.get();
+            double scale = ClientConfig.GLOBAL_SCALE.get();
 
-            // 文字部分
+            // 文字部分（在原始尺寸下计算）
             String text = Component.translatable("gui.funky_effect_lib.soulburn").getString() + " ";
             // 符号部分
             String symbol = hasCharge ? SYMBOL_CHARGED : SYMBOL_EMPTY;
@@ -84,17 +85,29 @@ public class SoulburnClient {
             int totalWidth = textWidth + symbolWidth;
             int height = font.lineHeight;
 
-            // 绘制半透明黑色背景
-            guiGraphics.fill(
-                    displayX - padding,
-                    displayY - padding / 2,
-                    displayX + totalWidth + padding,
-                    displayY + height + padding / 2,
-                    colorBackground
-            );
+            // 应用缩放后的尺寸
+            int scaledTotalWidth = (int) (totalWidth * scale);
+            int scaledHeight = (int) (height * scale);
+            int scaledPadding = (int) (padding * scale);
 
-            guiGraphics.drawString(font, text, displayX, displayY, colorText);
-            guiGraphics.drawString(font, symbol, displayX + textWidth, displayY, symbolColor);
+            // 背景位置（使用缩放后的尺寸，在原始坐标系中计算）
+            int bgX = displayX - scaledPadding;
+            int bgY = displayY - scaledPadding / 2;
+            int bgWidth = scaledTotalWidth + scaledPadding * 2;
+            int bgHeight = scaledHeight + scaledPadding;
+
+            // 绘制半透明黑色背景（原始坐标系）
+            guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, colorBackground);
+
+            // 绘制文字（先平移到目标位置，再缩放）
+            guiGraphics.pose().pushPose();
+            // 先平移到文字左上角位置，再缩放
+            guiGraphics.pose().translate(displayX, displayY, 0);
+            guiGraphics.pose().scale((float) scale, (float) scale, 1.0f);
+            // 在缩放后的坐标系中从 (0,0) 开始绘制
+            guiGraphics.drawString(font, text, 0, 0, colorText);
+            guiGraphics.drawString(font, symbol, textWidth, 0, symbolColor);
+            guiGraphics.pose().popPose();
         }
     }
 }
