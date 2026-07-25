@@ -10,17 +10,18 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 /** 织造铠甲的同步包 **/
-public record WovenMailSyncPacket(UUID entityId, int tangleCount, long earliestExpiry) {
+public record WovenMailSyncPacket(UUID entityId, int tangleCount, long earliestExpiry, int remainingSeconds) {
     /** 将数据编码到网络缓冲区 **/
     public void encode(FriendlyByteBuf buf) {
         buf.writeUUID(entityId);
         buf.writeInt(tangleCount);
         buf.writeLong(earliestExpiry);
+        buf.writeInt(remainingSeconds);
     }
 
     /** 从网络缓冲区解码数据 **/
     public static WovenMailSyncPacket decode(FriendlyByteBuf buf) {
-        return new WovenMailSyncPacket(buf.readUUID(), buf.readInt(), buf.readLong());
+        return new WovenMailSyncPacket(buf.readUUID(), buf.readInt(), buf.readLong(), buf.readInt());
     }
 
     /** 处理接收到的同步包，更新客户端织造铠甲数据 **/
@@ -34,7 +35,7 @@ public record WovenMailSyncPacket(UUID entityId, int tangleCount, long earliestE
                 WovenMailClientData.setTangleCount(packet.entityId(), packet.tangleCount(), packet.earliestExpiry());
                 Minecraft minecraft = Minecraft.getInstance();
                 if (minecraft.player != null && minecraft.player.getUUID().equals(packet.entityId())) {
-                    WovenMailClient.setTangleCount(packet.entityId(), packet.tangleCount());
+                    WovenMailClient.setTangleCount(packet.entityId(), packet.tangleCount(), packet.remainingSeconds());
                 }
             }
         });

@@ -242,12 +242,11 @@
 
   "entity.funky_effect_lib.afterimage_clone": "Afterimage Clone",
 
-  "gui.funky_effect_lib.pervading_darkness": "Pervading Shadow: x %s",
-  "gui.funky_effect_lib.creeping_darkness": "Creeping Darkness: x %s",
-  "gui.funky_effect_lib.frost_armor": "Frost Armor",
-  "gui.funky_effect_lib.woven_mail": "Woven Mail",
-  "gui.funky_effect_lib.soulburn": "Soulburn",
-  "gui.funky_effect_lib.bolt_charge": "Bolt Charge: x %s",
-  "gui.funky_effect_lib.slow_stacks": "Slow Stacks: %s/%s"
-
+  "gui.funky_effect_lib.pervading_darkness": "Pervading Shadow x%s",
+  "gui.funky_effect_lib.creeping_darkness": "Creeping Darkness x%s",
+  "gui.funky_effect_lib.frost_armor": "Frost Armor x%s %ss",
+  "gui.funky_effect_lib.woven_mail": "Woven Mail x%s %ss",
+  "gui.funky_effect_lib.bolt_charge": "Bolt Charge x%s",
+  "gui.funky_effect_lib.slow_stacks": "Slow Stacks %s/%s",
+  "gui.funky_effect_lib.soulburn": "Soulburn"
 }

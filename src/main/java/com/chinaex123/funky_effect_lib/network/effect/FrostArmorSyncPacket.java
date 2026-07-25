@@ -10,17 +10,18 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 /** 冰冻铠甲的同步包 **/
-public record FrostArmorSyncPacket(UUID entityId, int crystalCount, long earliestExpiry) {
+public record FrostArmorSyncPacket(UUID entityId, int crystalCount, long earliestExpiry, int remainingSeconds) {
     /** 将数据编码到网络缓冲区 **/
     public void encode(FriendlyByteBuf buf) {
         buf.writeUUID(entityId);
         buf.writeInt(crystalCount);
         buf.writeLong(earliestExpiry);
+        buf.writeInt(remainingSeconds);
     }
 
     /** 从网络缓冲区解码数据 **/
     public static FrostArmorSyncPacket decode(FriendlyByteBuf buf) {
-        return new FrostArmorSyncPacket(buf.readUUID(), buf.readInt(), buf.readLong());
+        return new FrostArmorSyncPacket(buf.readUUID(), buf.readInt(), buf.readLong(), buf.readInt());
     }
 
     /** 处理接收到的同步包，更新客户端冰冻铠甲状态 **/
@@ -34,7 +35,7 @@ public record FrostArmorSyncPacket(UUID entityId, int crystalCount, long earlies
                 FrostArmorClientData.setCrystalCount(packet.entityId(), packet.crystalCount(), packet.earliestExpiry());
                 Minecraft minecraft = Minecraft.getInstance();
                 if (minecraft.player != null && minecraft.player.getUUID().equals(packet.entityId())) {
-                    FrostArmorClient.setCrystalCount(packet.entityId(), packet.crystalCount());
+                    FrostArmorClient.setCrystalCount(packet.entityId(), packet.crystalCount(), packet.remainingSeconds());
                 }
             }
         });
