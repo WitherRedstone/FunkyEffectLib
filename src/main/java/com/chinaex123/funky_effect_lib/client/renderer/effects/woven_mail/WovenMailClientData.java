@@ -41,4 +41,8 @@ public class WovenMailClientData {
         tangleCountMap.remove(entityId);
         earliestExpiryMap.remove(entityId);
     }
+
+    public static long getEarliestExpiry(UUID entityId) {
+        return earliestExpiryMap.getOrDefault(entityId, 0L);
+    }
 }

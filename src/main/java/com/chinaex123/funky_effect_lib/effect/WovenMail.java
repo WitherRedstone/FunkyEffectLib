@@ -20,8 +20,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-
 /** 织造铠甲：拾取经验球时有概率生成缠结，每个缠结提供高额减伤 **/
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class WovenMail extends MobEffect {
@@ -30,9 +28,9 @@ public class WovenMail extends MobEffect {
 
     private static final float BASE_TANGLE_CHANCE = 0.25f; // 基础缠结生成概率
     private static final float CHANCE_PER_LEVEL = 0.05f; // 每级增加的缠结生成概率
-    private static final float BASE_DAMAGE_REDUCTION = 0.35f; // 每个缠结基础减伤
-    private static final int MAX_TANGLES = 10; // 最大缠结数量
-    private static final int TANGLE_DURATION = 600; // 存在时间
+    private static final float DAMAGE_REDUCTION_PER_LAYER = 0.08f; // 每层减伤8%
+    public static final int MAX_TANGLES = 10; // 最大缠结数量
+    private static final int LAYER_DURATION = 100; // 每层持续时间（100 tick = 5秒）
 
     public WovenMail(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
@@ -59,7 +57,8 @@ public class WovenMail extends MobEffect {
             long[] expiryArray = getExpiryArray(player);
             int count = expiryArray.length;
             long earliestExpiry = count > 0 ? expiryArray[0] : 0;
-            PacketDistributor.sendToPlayer(player, new WovenMailSyncPacket(player.getUUID(), count, earliestExpiry));
+            int remainingSeconds = getRemainingSeconds(player);
+            PacketDistributor.sendToPlayer(player, new WovenMailSyncPacket(player.getUUID(), count, earliestExpiry, remainingSeconds));
         }
     }
 
@@ -95,37 +94,63 @@ public class WovenMail extends MobEffect {
         long currentTime = entity.level().getGameTime();
         long[] current = getExpiryArray(entity);
 
-        long[] newArray = Arrays.stream(current)
-                .filter(expiry -> currentTime < expiry)
-                .toArray();
+        if (current.length == 0) {
+            return;
+        }
 
-        if (newArray.length != current.length) {
-            saveExpiryArray(entity, newArray);
-            syncToClient(entity);
+        // 获取最早的过期时间
+        long earliestExpiry = current[0];
+        int expiredLayers = 0;
+
+        // 计算过期层数
+        for (long expiry : current) {
+            if (currentTime >= expiry) {
+                expiredLayers++;
+            } else {
+                break;
+            }
+        }
+
+        if (expiredLayers > 0) {
+            // 移除过期的层数
+            if (expiredLayers >= current.length) {
+                clearTangles(entity);
+            } else {
+                long[] newArray = new long[current.length - expiredLayers];
+                System.arraycopy(current, expiredLayers, newArray, 0, current.length - expiredLayers);
+                saveExpiryArray(entity, newArray);
+                syncToClient(entity);
+            }
         }
     }
 
     // ==================== 添加缠结 ====================
-    private static void addTangle(LivingEntity entity, long expiryTime) {
+    private static void addTangle(LivingEntity entity) {
         long[] current = getExpiryArray(entity);
+        long currentTime = entity.level().getGameTime();
+
+        // 重新计算所有缠结的过期时间，确保每层都有完整的5秒
         long[] newArray = new long[current.length + 1];
-        System.arraycopy(current, 0, newArray, 0, current.length);
-        newArray[current.length] = expiryTime;
+        for (int i = 0; i < current.length; i++) {
+            newArray[i] = currentTime + ((long) (i + 1) * LAYER_DURATION);
+        }
+        newArray[current.length] = currentTime + ((long) (current.length + 1) * LAYER_DURATION);
+
         saveExpiryArray(entity, newArray);
         syncToClient(entity);
     }
 
-    // ==================== 移除缠结（消耗一个） ====================
-    private static void removeOldestTangle(LivingEntity entity) {
+    // ==================== 获取剩余时间（秒） ====================
+    private static int getRemainingSeconds(LivingEntity entity) {
         long[] current = getExpiryArray(entity);
-        if (current.length <= 1) {
-            clearTangles(entity);
-        } else {
-            long[] newArray = new long[current.length - 1];
-            System.arraycopy(current, 1, newArray, 0, current.length - 1);
-            saveExpiryArray(entity, newArray);
-            syncToClient(entity);
+        if (current.length == 0) {
+            return 0;
         }
+
+        long currentTime = entity.level().getGameTime();
+        long earliestExpiry = current[0];
+        long remainingTicks = earliestExpiry - currentTime;
+        return (int) Math.max(0, Math.ceil(remainingTicks / 20.0));
     }
 
     // ==================== 清除所有缠结 ====================
@@ -140,8 +165,9 @@ public class WovenMail extends MobEffect {
             long[] expiryArray = getExpiryArray(entity);
             int count = expiryArray.length;
             long earliestExpiry = count > 0 ? expiryArray[0] : 0;
+            int remainingSeconds = getRemainingSeconds(entity);
             PacketDistributor.sendToPlayer(serverPlayer,
-                    new WovenMailSyncPacket(entity.getUUID(), count, earliestExpiry));
+                    new WovenMailSyncPacket(entity.getUUID(), count, earliestExpiry, remainingSeconds));
         }
     }
 
@@ -162,9 +188,7 @@ public class WovenMail extends MobEffect {
 
         float tangleChance = BASE_TANGLE_CHANCE + (amplifier * CHANCE_PER_LEVEL);
         if (currentTangles < MAX_TANGLES && player.getRandom().nextFloat() < tangleChance) {
-            long currentTime = player.level().getGameTime();
-            long expiryTime = currentTime + TANGLE_DURATION;
-            addTangle(player, expiryTime);
+            addTangle(player); // 过期时间会在addTangle中自动计算
         }
     }
 
@@ -182,12 +206,11 @@ public class WovenMail extends MobEffect {
         int currentTangles = getTangleCount(entity);
 
         if (currentTangles > 0) {
-            float damageReduction = Math.min(currentTangles * BASE_DAMAGE_REDUCTION, 0.8f);
+            float damageReduction = Math.min(currentTangles * DAMAGE_REDUCTION_PER_LAYER, 0.8f);
             float originalDamage = event.getOriginalDamage();
             float reducedDamage = originalDamage * (1.0F - damageReduction);
             event.setNewDamage(Math.max(0, reducedDamage));
-
-            removeOldestTangle(entity);
+            // 不再消耗缠结，只通过时间衰减
         }
     }
 

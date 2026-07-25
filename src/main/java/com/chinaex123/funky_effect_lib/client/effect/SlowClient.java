@@ -65,14 +65,34 @@ public class SlowClient {
         int textWidth = font.width(component);
         int textHeight = font.lineHeight;
 
-        int x = ClientConfig.SLOW_DISPLAY_X.get();
-        int y = ClientConfig.SLOW_DISPLAY_Y.get();
-        int padding = ClientConfig.SLOW_PADDING.get();
-
         int bgColor = ClientConfig.parseColor(ClientConfig.SLOW_COLOR_BACKGROUND.get());
         int textColor = ClientConfig.parseColor(ClientConfig.SLOW_COLOR_TEXT.get());
+        int displayX = ClientConfig.SLOW_DISPLAY_X.get();
+        int displayY = ClientConfig.SLOW_DISPLAY_Y.get();
+        int padding = ClientConfig.SLOW_PADDING.get();
+        double scale = ClientConfig.GLOBAL_SCALE.get();
 
-        guiGraphics.fill(x, y, x + textWidth + padding * 2, y + textHeight + padding * 2, bgColor);
-        guiGraphics.drawString(font, component, x + padding, y + padding, textColor);
+        // 应用缩放后的尺寸
+        int scaledTextWidth = (int) (textWidth * scale);
+        int scaledTextHeight = (int) (textHeight * scale);
+        int scaledPadding = (int) (padding * scale);
+
+        // 背景位置（使用缩放后的尺寸，在原始坐标系中计算）
+        int bgX = displayX - scaledPadding;
+        int bgY = displayY - scaledPadding / 2;
+        int bgWidth = scaledTextWidth + scaledPadding * 2;
+        int bgHeight = scaledTextHeight + scaledPadding;
+
+        // 绘制背景（原始坐标系）
+        guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, bgColor);
+
+        // 绘制文字（先平移到目标位置，再缩放）
+        guiGraphics.pose().pushPose();
+        // 先平移到文字左上角位置，再缩放
+        guiGraphics.pose().translate(displayX, displayY, 0);
+        guiGraphics.pose().scale((float) scale, (float) scale, 1.0f);
+        // 在缩放后的坐标系中从 (0,0) 开始绘制
+        guiGraphics.drawString(font, component, 0, 0, textColor);
+        guiGraphics.pose().popPose();
     }
 }

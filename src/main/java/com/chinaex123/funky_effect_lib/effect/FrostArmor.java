@@ -20,8 +20,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-
 /** 冰霜护甲效果类：拾取经验球时有概率生成冰晶，每个冰晶提供高额减伤 **/
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class FrostArmor extends MobEffect {
@@ -30,9 +28,9 @@ public class FrostArmor extends MobEffect {
 
     private static final float BASE_CRYSTAL_CHANCE = 0.25f; // 基础冰晶生成概率
     private static final float CHANCE_PER_LEVEL = 0.05f; // 每级增加的冰晶生成概率
-    private static final float BASE_DAMAGE_REDUCTION = 0.10f; // 每个冰晶基础减伤
-    private static final int MAX_CRYSTALS = 10; // 最大冰晶数量
-    private static final int CRYSTAL_DURATION = 600; // 存在时间
+    private static final float DAMAGE_REDUCTION_PER_LAYER = 0.05f; // 每层减伤5%
+    public static final int MAX_CRYSTALS = 10; // 最大冰晶数量
+    private static final int LAYER_DURATION = 100; // 每层持续时间（100 tick = 5秒）
 
     public FrostArmor(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
@@ -59,7 +57,8 @@ public class FrostArmor extends MobEffect {
             long[] expiryArray = getExpiryArray(player);
             int count = expiryArray.length;
             long earliestExpiry = count > 0 ? expiryArray[0] : 0;
-            PacketDistributor.sendToPlayer(player, new FrostArmorSyncPacket(player.getUUID(), count, earliestExpiry));
+            int remainingSeconds = getRemainingSeconds(player);
+            PacketDistributor.sendToPlayer(player, new FrostArmorSyncPacket(player.getUUID(), count, earliestExpiry, remainingSeconds));
         }
     }
 
@@ -95,37 +94,63 @@ public class FrostArmor extends MobEffect {
         long currentTime = entity.level().getGameTime();
         long[] current = getExpiryArray(entity);
 
-        long[] newArray = Arrays.stream(current)
-                .filter(expiry -> currentTime < expiry)
-                .toArray();
+        if (current.length == 0) {
+            return;
+        }
 
-        if (newArray.length != current.length) {
-            saveExpiryArray(entity, newArray);
-            syncToClient(entity);
+        // 获取最早的过期时间
+        long earliestExpiry = current[0];
+        int expiredLayers = 0;
+
+        // 计算过期层数
+        for (long expiry : current) {
+            if (currentTime >= expiry) {
+                expiredLayers++;
+            } else {
+                break;
+            }
+        }
+
+        if (expiredLayers > 0) {
+            // 移除过期的层数
+            if (expiredLayers >= current.length) {
+                clearCrystals(entity);
+            } else {
+                long[] newArray = new long[current.length - expiredLayers];
+                System.arraycopy(current, expiredLayers, newArray, 0, current.length - expiredLayers);
+                saveExpiryArray(entity, newArray);
+                syncToClient(entity);
+            }
         }
     }
 
     // ==================== 添加冰晶 ====================
-    private static void addCrystal(LivingEntity entity, long expiryTime) {
+    private static void addCrystal(LivingEntity entity) {
         long[] current = getExpiryArray(entity);
+        long currentTime = entity.level().getGameTime();
+
+        // 重新计算所有冰晶的过期时间，确保每层都有完整的5秒
         long[] newArray = new long[current.length + 1];
-        System.arraycopy(current, 0, newArray, 0, current.length);
-        newArray[current.length] = expiryTime;
+        for (int i = 0; i < current.length; i++) {
+            newArray[i] = currentTime + ((long) (i + 1) * LAYER_DURATION);
+        }
+        newArray[current.length] = currentTime + ((long) (current.length + 1) * LAYER_DURATION);
+
         saveExpiryArray(entity, newArray);
         syncToClient(entity);
     }
 
-    // ==================== 移除冰晶（消耗一个） ====================
-    private static void removeOldestCrystal(LivingEntity entity) {
+    // ==================== 获取剩余时间（秒） ====================
+    private static int getRemainingSeconds(LivingEntity entity) {
         long[] current = getExpiryArray(entity);
-        if (current.length <= 1) {
-            clearCrystals(entity);
-        } else {
-            long[] newArray = new long[current.length - 1];
-            System.arraycopy(current, 1, newArray, 0, current.length - 1);
-            saveExpiryArray(entity, newArray);
-            syncToClient(entity);
+        if (current.length == 0) {
+            return 0;
         }
+
+        long currentTime = entity.level().getGameTime();
+        long earliestExpiry = current[0];
+        long remainingTicks = earliestExpiry - currentTime;
+        return (int) Math.max(0, Math.ceil(remainingTicks / 20.0));
     }
 
     // ==================== 清除所有冰晶 ====================
@@ -140,8 +165,9 @@ public class FrostArmor extends MobEffect {
             long[] expiryArray = getExpiryArray(entity);
             int count = expiryArray.length;
             long earliestExpiry = count > 0 ? expiryArray[0] : 0;
+            int remainingSeconds = getRemainingSeconds(entity);
             PacketDistributor.sendToPlayer(serverPlayer,
-                    new FrostArmorSyncPacket(entity.getUUID(), count, earliestExpiry));
+                    new FrostArmorSyncPacket(entity.getUUID(), count, earliestExpiry, remainingSeconds));
         }
     }
 
@@ -162,9 +188,7 @@ public class FrostArmor extends MobEffect {
 
         float crystalChance = BASE_CRYSTAL_CHANCE + (amplifier * CHANCE_PER_LEVEL);
         if (currentCrystals < MAX_CRYSTALS && player.getRandom().nextFloat() < crystalChance) {
-            long currentTime = player.level().getGameTime();
-            long expiryTime = currentTime + CRYSTAL_DURATION;
-            addCrystal(player, expiryTime);
+            addCrystal(player); // 过期时间会在addCrystal中自动计算
         }
     }
 
@@ -182,12 +206,10 @@ public class FrostArmor extends MobEffect {
         int currentCrystals = getCrystalCount(entity);
 
         if (currentCrystals > 0) {
-            float damageReduction = Math.min(currentCrystals * BASE_DAMAGE_REDUCTION, 0.8f);
+            float damageReduction = Math.min(currentCrystals * DAMAGE_REDUCTION_PER_LAYER, 0.5f);
             float originalDamage = event.getOriginalDamage();
             float reducedDamage = originalDamage * (1.0F - damageReduction);
             event.setNewDamage(Math.max(0, reducedDamage));
-
-            removeOldestCrystal(entity);
         }
     }
 

@@ -52,19 +52,33 @@ public class CreepingDarknessClient {
         int displayX = ClientConfig.CREEPING_DARKNESS_DISPLAY_X.get();
         int displayY = ClientConfig.CREEPING_DARKNESS_DISPLAY_Y.get();
         int padding = ClientConfig.CREEPING_DARKNESS_PADDING.get();
+        double scale = ClientConfig.GLOBAL_SCALE.get();
 
-        // 文字部分
+        // 文字部分（在原始尺寸下计算）
         String text = Component.translatable("gui.funky_effect_lib.creeping_darkness", stack).getString();
         int textWidth = font.width(text);
         int lineHeight = font.lineHeight;
 
-        // 计算文本总宽度
-        int bgX = displayX - padding;
-        int bgY = displayY - padding / 2;
-        int bgWidth = textWidth + padding * 2;
-        int bgHeight = lineHeight + padding;
+        // 应用缩放后的尺寸
+        int scaledTextWidth = (int) (textWidth * scale);
+        int scaledLineHeight = (int) (lineHeight * scale);
+        int scaledPadding = (int) (padding * scale);
 
+        // 背景位置（使用缩放后的尺寸，在原始坐标系中计算）
+        int bgX = displayX - scaledPadding;
+        int bgY = displayY - scaledPadding / 2;
+        int bgWidth = scaledTextWidth + scaledPadding * 2;
+        int bgHeight = scaledLineHeight + scaledPadding;
+
+        // 绘制背景（原始坐标系）
         guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, colorBackground);
-        guiGraphics.drawString(font, text, displayX, displayY, colorText);
+
+        // 绘制文字（原始坐标系）
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(displayX, displayY, 0);
+        guiGraphics.pose().scale((float) scale, (float) scale, 1.0f);
+        // 在缩放后的坐标系中从 (0,0) 开始绘制
+        guiGraphics.drawString(font, text, 0, 0, colorText);
+        guiGraphics.pose().popPose();
     }
 }

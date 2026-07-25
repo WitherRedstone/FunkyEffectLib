@@ -1,8 +1,17 @@
 package com.chinaex123.funky_effect_lib.client.config;
 
+
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class ClientConfig {
+
+    public static final ModConfigSpec.DoubleValue GLOBAL_SCALE;
+
+    public static final ModConfigSpec.ConfigValue<String> SOULBURN_COLOR_TEXT;
+    public static final ModConfigSpec.ConfigValue<String> SOULBURN_COLOR_BACKGROUND;
+    public static final ModConfigSpec.IntValue SOULBURN_DISPLAY_X;
+    public static final ModConfigSpec.IntValue SOULBURN_DISPLAY_Y;
+    public static final ModConfigSpec.IntValue SOULBURN_PADDING;
 
     public static final ModConfigSpec.ConfigValue<String> FROST_ARMOR_COLOR_TEXT;
     public static final ModConfigSpec.ConfigValue<String> FROST_ARMOR_COLOR_BACKGROUND;
@@ -15,12 +24,6 @@ public class ClientConfig {
     public static final ModConfigSpec.IntValue WOVEN_MAIL_DISPLAY_X;
     public static final ModConfigSpec.IntValue WOVEN_MAIL_DISPLAY_Y;
     public static final ModConfigSpec.IntValue WOVEN_MAIL_PADDING;
-
-    public static final ModConfigSpec.ConfigValue<String> SOULBURN_COLOR_TEXT;
-    public static final ModConfigSpec.ConfigValue<String> SOULBURN_COLOR_BACKGROUND;
-    public static final ModConfigSpec.IntValue SOULBURN_DISPLAY_X;
-    public static final ModConfigSpec.IntValue SOULBURN_DISPLAY_Y;
-    public static final ModConfigSpec.IntValue SOULBURN_PADDING;
 
     public static final ModConfigSpec.ConfigValue<String> PERVADING_DARKNESS_COLOR_TEXT;
     public static final ModConfigSpec.ConfigValue<String> PERVADING_DARKNESS_COLOR_BACKGROUND;
@@ -54,42 +57,11 @@ public class ClientConfig {
         builder.push("Client Config");
         builder.comment("客户端配置");
 
-        builder.push("FrostArmor Display");
-        builder.comment("冰冻铠甲显示配置");
-        FROST_ARMOR_COLOR_TEXT = builder
-                .comment("文本颜色 (十六进制格式，如 #FFFFFF 或 0xFFFFFF)")
-                .define("colorText", "#FFFFFF");
-        FROST_ARMOR_COLOR_BACKGROUND = builder
-                .comment("背景颜色 (十六进制格式，如 #88000000 或 0x88000000)")
-                .define("colorBackground", "#88000000");
-        FROST_ARMOR_DISPLAY_X = builder
-                .comment("显示位置 X 坐标")
-                .defineInRange("displayX", 10, 0, Integer.MAX_VALUE);
-        FROST_ARMOR_DISPLAY_Y = builder
-                .comment("显示位置 Y 坐标")
-                .defineInRange("displayY", 50, 0, Integer.MAX_VALUE);
-        FROST_ARMOR_PADDING = builder
-                .comment("背景内边距")
-                .defineInRange("padding", 4, 0, 50);
-        builder.pop();
-
-        builder.push("WovenMail Display");
-        builder.comment("织造铠甲显示配置");
-        WOVEN_MAIL_COLOR_TEXT = builder
-                .comment("文本颜色 (十六进制格式，如 #FFFFFF 或 0xFFFFFF)")
-                .define("colorText", "#FFFFFF");
-        WOVEN_MAIL_COLOR_BACKGROUND = builder
-                .comment("背景颜色 (十六进制格式，如 #88000000 或 0x88000000)")
-                .define("colorBackground", "#88000000");
-        WOVEN_MAIL_DISPLAY_X = builder
-                .comment("显示位置 X 坐标")
-                .defineInRange("displayX", 10, 0, Integer.MAX_VALUE);
-        WOVEN_MAIL_DISPLAY_Y = builder
-                .comment("显示位置 Y 坐标")
-                .defineInRange("displayY", 70, 0, Integer.MAX_VALUE);
-        WOVEN_MAIL_PADDING = builder
-                .comment("背景内边距")
-                .defineInRange("padding", 4, 0, 50);
+        builder.push("Global Config");
+        builder.comment("全局配置");
+        GLOBAL_SCALE = builder
+                .comment("全局文字缩放比例 (1.0 = 正常大小, 0.5 = 一半大小, 2.0 = 两倍大小)")
+                .defineInRange("globalScale", 1.0, 0.1, 3.0);
         builder.pop();
 
         builder.push("Soulburn Display");
@@ -102,13 +74,51 @@ public class ClientConfig {
                 .define("colorBackground", "#88000000");
         SOULBURN_DISPLAY_X = builder
                 .comment("显示位置 X 坐标")
-                .defineInRange("displayX", 10, 0, Integer.MAX_VALUE);
+                .defineInRange("displayX", 4, 0, Integer.MAX_VALUE);
         SOULBURN_DISPLAY_Y = builder
                 .comment("显示位置 Y 坐标")
-                .defineInRange("displayY", 90, 0, Integer.MAX_VALUE);
+                .defineInRange("displayY", 50, 0, Integer.MAX_VALUE);
         SOULBURN_PADDING = builder
                 .comment("背景内边距")
-                .defineInRange("padding", 4, 0, 50);
+                .defineInRange("padding", 2, 0, 50);
+        builder.pop();
+
+        builder.push("FrostArmor Display");
+        builder.comment("冰霜护甲显示配置");
+        FROST_ARMOR_COLOR_TEXT = builder
+                .comment("文本颜色 (十六进制格式，如 #FFFFFF 或 0xFFFFFF)")
+                .define("colorText", "#FFFFFF");
+        FROST_ARMOR_COLOR_BACKGROUND = builder
+                .comment("背景颜色 (十六进制格式，如 #88000000 或 0x88000000)")
+                .define("colorBackground", "#88000000");
+        FROST_ARMOR_DISPLAY_X = builder
+                .comment("显示位置 X 坐标")
+                .defineInRange("displayX", 4, 0, Integer.MAX_VALUE);
+        FROST_ARMOR_DISPLAY_Y = builder
+                .comment("显示位置 Y 坐标")
+                .defineInRange("displayY", 61, 0, Integer.MAX_VALUE);
+        FROST_ARMOR_PADDING = builder
+                .comment("背景内边距")
+                .defineInRange("padding", 2, 0, 50);
+        builder.pop();
+
+        builder.push("WovenMail Display");
+        builder.comment("织造铠甲显示配置");
+        WOVEN_MAIL_COLOR_TEXT = builder
+                .comment("文本颜色 (十六进制格式，如 #FFFFFF 或 0xFFFFFF)")
+                .define("colorText", "#FFFFFF");
+        WOVEN_MAIL_COLOR_BACKGROUND = builder
+                .comment("背景颜色 (十六进制格式，如 #88000000 或 0x88000000)")
+                .define("colorBackground", "#88000000");
+        WOVEN_MAIL_DISPLAY_X = builder
+                .comment("显示位置 X 坐标")
+                .defineInRange("displayX", 4, 0, Integer.MAX_VALUE);
+        WOVEN_MAIL_DISPLAY_Y = builder
+                .comment("显示位置 Y 坐标")
+                .defineInRange("displayY", 72, 0, Integer.MAX_VALUE);
+        WOVEN_MAIL_PADDING = builder
+                .comment("背景内边距")
+                .defineInRange("padding", 2, 0, 50);
         builder.pop();
 
         builder.push("PervadingDarkness Display");
@@ -121,13 +131,13 @@ public class ClientConfig {
                 .define("colorBackground", "#88000000");
         PERVADING_DARKNESS_DISPLAY_X = builder
                 .comment("显示位置 X 坐标")
-                .defineInRange("displayX", 10, 0, Integer.MAX_VALUE);
+                .defineInRange("displayX", 4, 0, Integer.MAX_VALUE);
         PERVADING_DARKNESS_DISPLAY_Y = builder
                 .comment("显示位置 Y 坐标")
-                .defineInRange("displayY", 100, 0, Integer.MAX_VALUE);
+                .defineInRange("displayY", 83, 0, Integer.MAX_VALUE);
         PERVADING_DARKNESS_PADDING = builder
                 .comment("背景内边距")
-                .defineInRange("padding", 4, 0, 50);
+                .defineInRange("padding", 2, 0, 50);
         builder.pop();
 
         builder.push("CreepingDarkness Display");
@@ -140,13 +150,13 @@ public class ClientConfig {
                 .define("colorBackground", "#88000000");
         CREEPING_DARKNESS_DISPLAY_X = builder
                 .comment("显示位置 X 坐标")
-                .defineInRange("displayX", 10, 0, Integer.MAX_VALUE);
+                .defineInRange("displayX", 4, 0, Integer.MAX_VALUE);
         CREEPING_DARKNESS_DISPLAY_Y = builder
                 .comment("显示位置 Y 坐标")
-                .defineInRange("displayY", 110, 0, Integer.MAX_VALUE);
+                .defineInRange("displayY", 94, 0, Integer.MAX_VALUE);
         CREEPING_DARKNESS_PADDING = builder
                 .comment("背景内边距")
-                .defineInRange("padding", 4, 0, 50);
+                .defineInRange("padding", 2, 0, 50);
         builder.pop();
 
         builder.push("BoltCharge Display");
@@ -159,13 +169,13 @@ public class ClientConfig {
                 .define("colorBackground", "#88000000");
         BOLT_CHARGE_DISPLAY_X = builder
                 .comment("显示位置 X 坐标")
-                .defineInRange("displayX", 10, 0, Integer.MAX_VALUE);
+                .defineInRange("displayX", 4, 0, Integer.MAX_VALUE);
         BOLT_CHARGE_DISPLAY_Y = builder
                 .comment("显示位置 Y 坐标")
-                .defineInRange("displayY", 120, 0, Integer.MAX_VALUE);
+                .defineInRange("displayY", 105, 0, Integer.MAX_VALUE);
         BOLT_CHARGE_PADDING = builder
                 .comment("背景内边距")
-                .defineInRange("padding", 4, 0, 50);
+                .defineInRange("padding", 2, 0, 50);
         builder.pop();
 
         builder.push("Slow Display");
@@ -178,13 +188,13 @@ public class ClientConfig {
                 .define("colorBackground", "#88000000");
         SLOW_DISPLAY_X = builder
                 .comment("显示位置 X 坐标")
-                .defineInRange("displayX", 10, 0, Integer.MAX_VALUE);
+                .defineInRange("displayX", 4, 0, Integer.MAX_VALUE);
         SLOW_DISPLAY_Y = builder
                 .comment("显示位置 Y 坐标")
-                .defineInRange("displayY", 130, 0, Integer.MAX_VALUE);
+                .defineInRange("displayY", 116, 0, Integer.MAX_VALUE);
         SLOW_PADDING = builder
                 .comment("背景内边距")
-                .defineInRange("padding", 4, 0, 50);
+                .defineInRange("padding", 2, 0, 50);
         builder.pop();
 
         builder.pop();
