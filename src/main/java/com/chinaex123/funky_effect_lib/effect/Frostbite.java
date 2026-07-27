@@ -20,17 +20,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 霜寒：使生物冻结 **/
+/**
+ * 霜寒：使生物冻结，根据等级产生不同效果
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>1级：减速15%</li>
+ *   <li>2级及以上：冰冻效果（增加冰冻时间）</li>
+ *   <li>持续生成雪花粒子效果</li>
+ * </ol>
+ */
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Frostbite extends MobEffect {
 
     private static final ResourceLocation FROSTBITE_MODIFIER = ResourceLocation.fromNamespaceAndPath(FunkyEffectLib.MOD_ID, "frostbite_slowdown");
 
-    private static final float SPEED_REDUCTION = -0.15f; // 减速15%
-    private static final int BASE_FROZEN_TICKS = 40; // 基础冰冻tick增量
-    private static final int EXTRA_FROZEN_PER_LEVEL = 40; // 每级额外冰冻tick
+    /** 减速比例 **/
+    private static final float SPEED_REDUCTION = -0.15f;
+    /** 基础冰冻时间增量 **/
+    private static final int BASE_FROZEN_TICKS = 40;
+    /** 每级额外冰冻时间增量 **/
+    private static final int EXTRA_FROZEN_PER_LEVEL = 40;
 
-    private static final Map<UUID, Integer> entityTickMap = new HashMap<>(); // 记录每个生物的冻结tick计数
+    /** 缓存每个实体的Tick计数器 **/
+    private static final Map<UUID, Integer> entityTickMap = new HashMap<>();
 
     public Frostbite(int color) {
         super(MobEffectCategory.HARMFUL, color);
@@ -39,9 +52,12 @@ public class Frostbite extends MobEffect {
     @Override
     public boolean applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
         if (amplifier == 0) {
+            // 1级：减速效果
             AttributeInstance movementSpeed = entity.getAttribute(Attributes.MOVEMENT_SPEED);
             if (movementSpeed != null) {
+                // 移除旧的修改器
                 movementSpeed.removeModifier(FROSTBITE_MODIFIER);
+                // 添加永久修改器（效果持续期间生效）
                 movementSpeed.addPermanentModifier(new AttributeModifier(
                         FROSTBITE_MODIFIER,
                         SPEED_REDUCTION,
@@ -49,6 +65,7 @@ public class Frostbite extends MobEffect {
                 ));
             }
         } else if (entity.canFreeze()) {
+            // 2级及以上：冰冻效果
             entity.setIsInPowderSnow(true);
             int frozenIncrease = BASE_FROZEN_TICKS + (amplifier * EXTRA_FROZEN_PER_LEVEL);
             entity.setTicksFrozen(entity.getTicksFrozen() + frozenIncrease);
@@ -56,6 +73,17 @@ public class Frostbite extends MobEffect {
         return true;
     }
 
+    @Override
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
+        return true;
+    }
+
+    /**
+     * 实体Tick事件处理
+     * 为拥有霜寒效果的实体生成雪花粒子
+     *
+     * @param event 实体Tick事件
+     */
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Post event) {
         if (event.getEntity() instanceof LivingEntity entity) {
@@ -65,6 +93,7 @@ public class Frostbite extends MobEffect {
                 UUID entityId = entity.getUUID();
                 int ticks = entityTickMap.getOrDefault(entityId, 0) + 1;
 
+                // 每20刻生成一次粒子
                 if (ticks >= 20) {
                     entityTickMap.put(entityId, 0);
                     ((ServerLevel) entity.level()).sendParticles(ParticleTypes.SNOWFLAKE,
@@ -75,10 +104,5 @@ public class Frostbite extends MobEffect {
                 }
             }
         }
-    }
-
-    @Override
-    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
-        return true;
     }
 }

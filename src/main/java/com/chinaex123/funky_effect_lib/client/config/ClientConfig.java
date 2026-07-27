@@ -3,6 +3,8 @@ package com.chinaex123.funky_effect_lib.client.config;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.util.List;
+
 public class ClientConfig {
 
     public static final ModConfigSpec.DoubleValue GLOBAL_SCALE;
@@ -48,6 +50,19 @@ public class ClientConfig {
     public static final ModConfigSpec.IntValue SLOW_DISPLAY_X;
     public static final ModConfigSpec.IntValue SLOW_DISPLAY_Y;
     public static final ModConfigSpec.IntValue SLOW_PADDING;
+
+    // 矿石颜色配置
+    public static final ModConfigSpec.ConfigValue<String> ORE_COLOR_IRON;
+    public static final ModConfigSpec.ConfigValue<String> ORE_COLOR_GOLD;
+    public static final ModConfigSpec.ConfigValue<String> ORE_COLOR_DIAMOND;
+    public static final ModConfigSpec.ConfigValue<String> ORE_COLOR_EMERALD;
+    public static final ModConfigSpec.ConfigValue<String> ORE_COLOR_LAPIS;
+    public static final ModConfigSpec.ConfigValue<String> ORE_COLOR_REDSTONE;
+    public static final ModConfigSpec.ConfigValue<String> ORE_COLOR_COAL;
+    public static final ModConfigSpec.ConfigValue<String> ORE_COLOR_COPPER;
+    public static final ModConfigSpec.ConfigValue<String> ORE_COLOR_QUARTZ;
+    public static final ModConfigSpec.ConfigValue<String> ORE_COLOR_DEBRIS;
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> CUSTOM_ORE_COLORS;
 
     public static final ModConfigSpec SPEC;
 
@@ -195,6 +210,56 @@ public class ClientConfig {
         SLOW_PADDING = builder
                 .comment("背景内边距")
                 .defineInRange("padding", 2, 0, 50);
+        builder.pop();
+
+        builder.push("Prospector Ore Colors");
+        builder.comment("勘探者矿石颜色配置");
+        ORE_COLOR_IRON = builder
+                .comment("铁矿石颜色 (十六进制格式，如 #C8B4A0)")
+                .define("oreColorIron", "#C8B4A0");
+        ORE_COLOR_GOLD = builder
+                .comment("金矿石颜色 (十六进制格式，如 #FFD700)")
+                .define("oreColorGold", "#FFD700");
+        ORE_COLOR_DIAMOND = builder
+                .comment("钻石矿石颜色 (十六进制格式，如 #00BFFF)")
+                .define("oreColorDiamond", "#00BFFF");
+        ORE_COLOR_EMERALD = builder
+                .comment("绿宝石矿石颜色 (十六进制格式，如 #50FF64)")
+                .define("oreColorEmerald", "#50FF64");
+        ORE_COLOR_LAPIS = builder
+                .comment("青金石矿石颜色 (十六进制格式，如 #0064FF)")
+                .define("oreColorLapis", "#0064FF");
+        ORE_COLOR_REDSTONE = builder
+                .comment("红石矿石颜色 (十六进制格式，如 #FF0000)")
+                .define("oreColorRedstone", "#FF0000");
+        ORE_COLOR_COAL = builder
+                .comment("煤矿石颜色 (十六进制格式，如 #282828)")
+                .define("oreColorCoal", "#282828");
+        ORE_COLOR_COPPER = builder
+                .comment("铜矿石颜色 (十六进制格式，如 #FF8C00)")
+                .define("oreColorCopper", "#FF8C00");
+        ORE_COLOR_QUARTZ = builder
+                .comment("石英矿石颜色 (十六进制格式，如 #FFC8FF)")
+                .define("oreColorQuartz", "#FFC8FF");
+        ORE_COLOR_DEBRIS = builder
+                .comment("远古残骸颜色 (十六进制格式，如 #BA9175)")
+                .define("oreColorDebris", "#BA9175");
+        CUSTOM_ORE_COLORS = builder
+                .comment("自定义模组矿石颜色列表，格式: \"pattern=#RRGGBB\"\n" +
+                        "例如: \"tin=#C0C0C0\", \"modid:silver=#C0C0C0\", \"uranium=#00FF00\"")
+                .defineList("customOreColors", List.of(
+                        "tin=#C0C0C0",
+                        "silver=#C0C0C0",
+                        "lead=#808080",
+                        "uranium=#00FF00",
+                        "aluminum=#DCDCDC",
+                        "nickel=#A0A0A4",
+                        "platinum=#E5E4E2",
+                        "mithril=#00FFFF",
+                        "adamantine=#8000FF",
+                        "cobalt=#0046FF",
+                        "ardite=#FF6400"
+                ), obj -> true);
         builder.pop();
 
         builder.pop();

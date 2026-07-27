@@ -7,6 +7,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.EntityTypeTagsProvider;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -17,7 +18,7 @@ public class FELEntityTagsProvider extends EntityTypeTagsProvider {
     }
 
     @Override
-    public void addTags(HolderLookup.Provider pProvider) {
+    public void addTags(HolderLookup.@NotNull Provider pProvider) {
         tag(FELEntityTypeTags.PERVADING_DARKNESS_MOB)
                 .add(EntityType.ZOMBIE);
     }

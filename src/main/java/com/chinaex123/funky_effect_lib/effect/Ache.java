@@ -20,17 +20,31 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 疼痛：大幅降低移动速度并每秒减少饥饿值 **/
+/**
+ * 疼痛：大幅降低移动速度并每秒减少饥饿值
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>基础移动速度减少35%，每级额外减少5%</li>
+ *   <li>每2.5秒（50刻）减少1点饥饿值</li>
+ *   <li>与镇静（Calm）效果互斥，拥有镇静时自动移除疼痛</li>
+ * </ol>
+ */
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Ache extends MobEffect {
 
     private static final ResourceLocation MOVEMENT_SPEED_MODIFIER = ResourceLocation.fromNamespaceAndPath(FunkyEffectLib.MOD_ID, "ache_speed");
 
-    private static final float BASE_SPEED_REDUCTION = -0.35f; // 基础移动速度减少
-    private static final float ADDITIONAL_REDUCTION_PER_LEVEL = -0.05f; // 每级额外移动速度减少
-    private static final int HUNGER_COST_INTERVAL = 50; // 减少饥饿值间隔
+    /** 基础移动速度减少 */
+    private static final float BASE_SPEED_REDUCTION = -0.35f;
+    /** 每级额外移动速度减少 */
+    private static final float ADDITIONAL_REDUCTION_PER_LEVEL = -0.05f;
+    /** 减少饥饿值间隔 */
+    private static final int HUNGER_COST_INTERVAL = 50;
 
+    /** 上一次应用的等级 */
     private static final Map<UUID, Integer> lastAmplifierMap = new HashMap<>();
+    /** 当前应用的等级计数器 */
     private static final Map<UUID, Integer> tickCounterMap = new HashMap<>();
 
     public Ache(int color) {
@@ -47,6 +61,12 @@ public class Ache extends MobEffect {
         return true;
     }
 
+    /**
+     * 玩家Tick事件处理
+     * 管理疼痛效果的属性修改和饥饿值消耗
+     *
+     * @param event 玩家Tick事件
+     */
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Post event) {
         if (!(event.getEntity() instanceof Player player)) {
@@ -69,6 +89,7 @@ public class Ache extends MobEffect {
         MobEffectInstance effect = player.getEffect(FELEffects.ACHE);
 
         if (effect == null) {
+            // 效果已消失，清除所有修改
             clearAttributes(player);
             lastAmplifierMap.remove(player.getUUID());
             tickCounterMap.remove(player.getUUID());
@@ -79,12 +100,14 @@ public class Ache extends MobEffect {
         UUID entityId = player.getUUID();
         Integer lastAmplifier = lastAmplifierMap.get(entityId);
 
+        // 如果等级发生变化，重新计算属性修改
         if (lastAmplifier == null || lastAmplifier != amplifier) {
             float speedReduction = BASE_SPEED_REDUCTION + (amplifier * ADDITIONAL_REDUCTION_PER_LEVEL);
             applyAttributes(player, speedReduction);
             lastAmplifierMap.put(entityId, amplifier);
         }
 
+        // 饥饿值消耗计时
         int tickCounter = tickCounterMap.getOrDefault(entityId, 0);
         tickCounter++;
 
@@ -96,18 +119,31 @@ public class Ache extends MobEffect {
         tickCounterMap.put(entityId, tickCounter);
     }
 
-    private static void applyAttributes(Player player, float speedReduction) {
+    /**
+     * 应用移动速度修改
+     *
+     * @param player 玩家对象
+     * @param boost 速度修改量（负值表示减速）
+     */
+    private static void applyAttributes(Player player, float boost) {
         AttributeInstance movementSpeed = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (movementSpeed != null) {
+            // 移除旧的修改器，避免重复叠加
             movementSpeed.removeModifier(MOVEMENT_SPEED_MODIFIER);
+            // 添加新的修改器
             movementSpeed.addTransientModifier(new AttributeModifier(
                     MOVEMENT_SPEED_MODIFIER,
-                    speedReduction,
+                    boost,
                     AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
             ));
         }
     }
 
+    /**
+     * 清除移动速度修改
+     *
+     * @param player 玩家对象
+     */
     private static void clearAttributes(Player player) {
         AttributeInstance movementSpeed = player.getAttribute(Attributes.MOVEMENT_SPEED);
         if (movementSpeed != null) {

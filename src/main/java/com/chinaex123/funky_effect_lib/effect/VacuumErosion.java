@@ -17,15 +17,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 真空侵蚀：每秒造成窒息伤害 **/
+/**
+ * 真空侵蚀：每秒造成窒息伤害
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>基础伤害为2点，每级增加2点</li>
+ *   <li>每1秒（20刻）造成一次伤害</li>
+ *   <li>伤害类型为自定义的VACUUM_EROSION（真空侵蚀）</li>
+ *   <li>效果消失时停止伤害</li>
+ * </ol>
+ */
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class VacuumErosion extends MobEffect {
 
-    private static final float BASE_DAMAGE = 2.0f; // 基础伤害
-    private static final float ADDITIONAL_DAMAGE_PER_LEVEL = 2.0f; // 每级额外伤害
-    private static final int DAMAGE_INTERVAL = 20; // 伤害间隔
+    /** 基础伤害 **/
+    private static final float BASE_DAMAGE = 2.0f;
+    /** 每级额外伤害 **/
+    private static final float ADDITIONAL_DAMAGE_PER_LEVEL = 2.0f;
+    /** 伤害间隔 **/
+    private static final int DAMAGE_INTERVAL = 20;
 
-    private static final Map<UUID, Integer> tickCounterMap = new HashMap<>(); // 伤害间隔计数器
+    /** 缓存每个实体的Tick计数器 **/
+    private static final Map<UUID, Integer> tickCounterMap = new HashMap<>();
 
     public VacuumErosion(int color) {
         super(MobEffectCategory.HARMFUL, color);
@@ -41,8 +55,15 @@ public class VacuumErosion extends MobEffect {
         return true;
     }
 
+    /**
+     * 实体Tick事件处理
+     * 管理真空侵蚀的计时和伤害
+     *
+     * @param event 实体Tick事件
+     */
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Post event) {
+        // 仅处理LivingEntity
         if (!(event.getEntity() instanceof LivingEntity entity)) {
             return;
         }
@@ -55,18 +76,26 @@ public class VacuumErosion extends MobEffect {
         MobEffectInstance effect = entity.getEffect(FELEffects.VACUUM_EROSION);
 
         if (effect == null) {
+            // 效果消失，清除计时器
             tickCounterMap.remove(entityId);
             return;
         }
 
+        // 计时器递增
         int tickCounter = tickCounterMap.getOrDefault(entityId, 0);
         tickCounter++;
 
+        // 达到伤害间隔时造成伤害
         if (tickCounter >= DAMAGE_INTERVAL) {
             int amplifier = effect.getAmplifier();
+            // 计算伤害：基础 + 等级 × 每级加成
             float damage = BASE_DAMAGE + (amplifier * ADDITIONAL_DAMAGE_PER_LEVEL);
+
+            // 创建真空侵蚀伤害源
             DamageSource vacuumErosionDamage = entity.level().damageSources().source(FELDamageTypes.VACUUM_EROSION);
+            // 对实体造成伤害
             entity.hurt(vacuumErosionDamage, damage);
+            // 重置计时器
             tickCounter = 0;
         }
 

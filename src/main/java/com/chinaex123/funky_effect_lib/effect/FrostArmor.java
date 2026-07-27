@@ -20,17 +20,33 @@ import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
-/** 冰霜护甲效果类：拾取经验球时有概率生成冰晶，每个冰晶提供高额减伤 **/
+/**
+ * 冰霜护甲：拾取经验球时有概率生成冰晶，每个冰晶提供高额减伤
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>拾取经验球时有概率生成冰晶（基础25%，每级+5%）</li>
+ *   <li>最大冰晶数量为10个</li>
+ *   <li>每个冰晶提供5%伤害减免，最高50%</li>
+ *   <li>每个冰晶持续100刻（5秒），过期后自动移除</li>
+ *   <li>冰晶过期时间存储在持久化数据中</li>
+ * </ol>
+ */
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class FrostArmor extends MobEffect {
 
     private static final ResourceLocation CRYSTAL_EXPIRY_ARRAY_KEY = FunkyEffectLib.id("frost_armor_crystal_expiry_array");
 
-    private static final float BASE_CRYSTAL_CHANCE = 0.25f; // 基础冰晶生成概率
-    private static final float CHANCE_PER_LEVEL = 0.05f; // 每级增加的冰晶生成概率
-    private static final float DAMAGE_REDUCTION_PER_LAYER = 0.05f; // 每层减伤5%
-    public static final int MAX_CRYSTALS = 10; // 最大冰晶数量
-    private static final int LAYER_DURATION = 100; // 每层持续时间（100 tick = 5秒）
+    /** 基础冰晶生成概率 **/
+    private static final float BASE_CRYSTAL_CHANCE = 0.25f;
+    /** 每级增加的冰晶生成概率 **/
+    private static final float CHANCE_PER_LEVEL = 0.05f;
+    /** 每层减伤比例 **/
+    private static final float DAMAGE_REDUCTION_PER_LAYER = 0.05f;
+    /** 最大冰晶数量 **/
+    public static final int MAX_CRYSTALS = 10;
+    /** 每层持续时间 **/
+    private static final int LAYER_DURATION = 100;
 
     public FrostArmor(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
@@ -38,6 +54,7 @@ public class FrostArmor extends MobEffect {
 
     @Override
     public boolean applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
+        // 每Tick清理过期的冰晶
         cleanExpiredCrystals(entity);
         return true;
     }
@@ -47,12 +64,16 @@ public class FrostArmor extends MobEffect {
         return true;
     }
 
-    // ==================== 玩家登录时同步 ====================
+    /**
+     * 玩家登录事件处理
+     * 同步冰霜护甲状态到客户端
+     *
+     * @param event 玩家登录事件
+     */
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
-        // 同步冰霜护甲状态
         if (player.hasEffect(FELEffects.FROST_ARMOR)) {
             long[] expiryArray = getExpiryArray(player);
             int count = expiryArray.length;
@@ -62,7 +83,12 @@ public class FrostArmor extends MobEffect {
         }
     }
 
-    // ==================== NBT 存储方法 ====================
+    /**
+     * 获取实体的冰晶过期时间数组
+     *
+     * @param entity 目标实体
+     * @return 过期时间数组（排序）
+     */
     private static long[] getExpiryArray(LivingEntity entity) {
         CompoundTag persistentData = entity.getPersistentData();
         String key = CRYSTAL_EXPIRY_ARRAY_KEY.toString();
@@ -73,6 +99,12 @@ public class FrostArmor extends MobEffect {
         return persistentData.getLongArray(key);
     }
 
+    /**
+     * 保存实体的冰晶过期时间数组
+     *
+     * @param entity 目标实体
+     * @param expiryArray 过期时间数组
+     */
     private static void saveExpiryArray(LivingEntity entity, long[] expiryArray) {
         CompoundTag persistentData = entity.getPersistentData();
         String key = CRYSTAL_EXPIRY_ARRAY_KEY.toString();
@@ -84,12 +116,21 @@ public class FrostArmor extends MobEffect {
         }
     }
 
-    // ==================== 冰晶数量获取 ====================
+    /**
+     * 获取实体的冰晶数量
+     *
+     * @param entity 目标实体
+     * @return 冰晶数量
+     */
     public static int getCrystalCount(LivingEntity entity) {
         return getExpiryArray(entity).length;
     }
 
-    // ==================== 清理过期冰晶 ====================
+    /**
+     * 清理过期的冰晶
+     *
+     * @param entity 目标实体
+     */
     private static void cleanExpiredCrystals(LivingEntity entity) {
         long currentTime = entity.level().getGameTime();
         long[] current = getExpiryArray(entity);
@@ -112,10 +153,11 @@ public class FrostArmor extends MobEffect {
         }
 
         if (expiredLayers > 0) {
-            // 移除过期的层数
             if (expiredLayers >= current.length) {
+                // 所有冰晶已过期
                 clearCrystals(entity);
             } else {
+                // 移除过期的层数
                 long[] newArray = new long[current.length - expiredLayers];
                 System.arraycopy(current, expiredLayers, newArray, 0, current.length - expiredLayers);
                 saveExpiryArray(entity, newArray);
@@ -124,7 +166,11 @@ public class FrostArmor extends MobEffect {
         }
     }
 
-    // ==================== 添加冰晶 ====================
+    /**
+     * 添加一个冰晶
+     *
+     * @param entity 目标实体
+     */
     private static void addCrystal(LivingEntity entity) {
         long[] current = getExpiryArray(entity);
         long currentTime = entity.level().getGameTime();
@@ -140,7 +186,12 @@ public class FrostArmor extends MobEffect {
         syncToClient(entity);
     }
 
-    // ==================== 获取剩余时间（秒） ====================
+    /**
+     * 获取剩余时间（秒）
+     *
+     * @param entity 目标实体
+     * @return 剩余秒数
+     */
     private static int getRemainingSeconds(LivingEntity entity) {
         long[] current = getExpiryArray(entity);
         if (current.length == 0) {
@@ -153,13 +204,21 @@ public class FrostArmor extends MobEffect {
         return (int) Math.max(0, Math.ceil(remainingTicks / 20.0));
     }
 
-    // ==================== 清除所有冰晶 ====================
+    /**
+     * 清除所有冰晶
+     *
+     * @param entity 目标实体
+     */
     public static void clearCrystals(LivingEntity entity) {
         saveExpiryArray(entity, new long[0]);
         syncToClient(entity);
     }
 
-    // ==================== 客户端同步 ====================
+    /**
+     * 同步冰晶数据到客户端
+     *
+     * @param entity 目标实体
+     */
     private static void syncToClient(LivingEntity entity) {
         if (entity instanceof ServerPlayer serverPlayer) {
             long[] expiryArray = getExpiryArray(entity);
@@ -171,41 +230,59 @@ public class FrostArmor extends MobEffect {
         }
     }
 
-    // ==================== 事件监听 ====================
+    /**
+     * 经验球拾取事件处理
+     * 有概率生成新的冰晶
+     *
+     * @param event 经验球拾取事件
+     */
     @SubscribeEvent
     public static void onXpPickup(PlayerXpEvent.PickupXp event) {
         Player player = event.getEntity();
 
+        // 检查玩家是否拥有冰霜护甲效果
         MobEffectInstance effect = player.getEffect(FELEffects.FROST_ARMOR);
         if (effect == null) {
             return;
         }
 
+        // 清理过期的冰晶
         cleanExpiredCrystals(player);
 
         int amplifier = effect.getAmplifier();
         int currentCrystals = getCrystalCount(player);
 
+        // 计算生成概率：基础 + 等级 × 每级加成
         float crystalChance = BASE_CRYSTAL_CHANCE + (amplifier * CHANCE_PER_LEVEL);
+        // 未达到最大数量且触发概率时生成新冰晶
         if (currentCrystals < MAX_CRYSTALS && player.getRandom().nextFloat() < crystalChance) {
-            addCrystal(player); // 过期时间会在addCrystal中自动计算
+            addCrystal(player);
         }
     }
 
+    /**
+     * 实体受伤事件处理
+     * 根据冰晶数量提供伤害减免
+     *
+     * @param event 实体受伤事件
+     */
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent.Pre event) {
         LivingEntity entity = event.getEntity();
 
+        // 检查实体是否拥有冰霜护甲效果
         MobEffectInstance effect = entity.getEffect(FELEffects.FROST_ARMOR);
         if (effect == null) {
             return;
         }
 
+        // 清理过期的冰晶
         cleanExpiredCrystals(entity);
 
         int currentCrystals = getCrystalCount(entity);
 
         if (currentCrystals > 0) {
+            // 计算减伤比例
             float damageReduction = Math.min(currentCrystals * DAMAGE_REDUCTION_PER_LAYER, 0.5f);
             float originalDamage = event.getOriginalDamage();
             float reducedDamage = originalDamage * (1.0F - damageReduction);
@@ -213,6 +290,12 @@ public class FrostArmor extends MobEffect {
         }
     }
 
+    /**
+     * 效果移除事件处理
+     * 效果被手动移除时清除所有冰晶
+     *
+     * @param event 效果移除事件
+     */
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
         if (event.getEffect() == FELEffects.FROST_ARMOR) {
@@ -220,6 +303,12 @@ public class FrostArmor extends MobEffect {
         }
     }
 
+    /**
+     * 效果过期事件处理
+     * 效果自然过期时清除所有冰晶
+     *
+     * @param event 效果过期事件
+     */
     @SubscribeEvent
     public static void onEffectExpired(MobEffectEvent.Expired event) {
         MobEffectInstance instance = event.getEffectInstance();

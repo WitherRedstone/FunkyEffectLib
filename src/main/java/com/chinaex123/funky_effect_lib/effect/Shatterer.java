@@ -16,15 +16,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 碎裂：当被冻结的目标碎裂时，造成大量伤害 **/
+/**
+ * 碎裂：当被冻结的目标碎裂时，造成大量伤害
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>如果由冻结效果触发，伤害 = 触发伤害 × (3.0 + 等级 × 0.5)</li>
+ *   <li>如果直接应用，造成5点默认伤害</li>
+ *   <li>产生雪花和雪球粒子效果</li>
+ *   <li>效果触发后立即移除</li>
+ * </ol>
+ */
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Shatterer extends InstantenousMobEffect {
 
-    private static final float BASE_DAMAGE_MULTIPLIER = 3.0f; // 基础伤害倍率
-    private static final float EXTRA_MULTIPLIER_PER_LEVEL = 0.5f; // 每级额外增加伤害倍率
-    private static final float DEFAULT_DAMAGE = 5.0f; // 默认伤害
+    /** 基础伤害倍率 **/
+    private static final float BASE_DAMAGE_MULTIPLIER = 3.0f;
+    /** 每级额外增加伤害倍率 **/
+    private static final float EXTRA_MULTIPLIER_PER_LEVEL = 0.5f;
+    /** 默认伤害 **/
+    private static final float DEFAULT_DAMAGE = 5.0f;
 
+    /** 缓存每个实体的触发伤害 **/
     private static final Map<UUID, Float> triggerDamageMap = new HashMap<>();
+    /** 缓存已碎裂的实体（防止重复触发） **/
     private static final Map<UUID, Boolean> shatteredMap = new HashMap<>();
 
     public Shatterer(int color) {
@@ -33,18 +48,20 @@ public class Shatterer extends InstantenousMobEffect {
 
     @Override
     public boolean applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
+        // 仅在服务端执行
         if (!entity.level().isClientSide()) {
             UUID entityId = entity.getUUID();
+            // 防止重复触发
             if (!shatteredMap.containsKey(entityId)) {
                 // 计算碎裂伤害
                 float shatterDamage;
                 if (triggerDamageMap.containsKey(entityId)) {
-                    // 有触发伤害（来自Freeze），使用倍率计算
+                    // 有触发伤害（来自冻结效果），使用倍率计算
                     float triggerDamage = triggerDamageMap.get(entityId);
                     float damageMultiplier = BASE_DAMAGE_MULTIPLIER + (EXTRA_MULTIPLIER_PER_LEVEL * amplifier);
                     shatterDamage = triggerDamage * damageMultiplier;
                 } else {
-                    // 没有触发伤害（直接应用），直接使用默认伤害
+                    // 没有触发伤害（直接应用），使用默认伤害
                     shatterDamage = DEFAULT_DAMAGE;
                 }
 
@@ -54,6 +71,7 @@ public class Shatterer extends InstantenousMobEffect {
 
                 // 播放粒子效果
                 if (entity.level() instanceof ServerLevel serverLevel) {
+                    // 雪花粒子（20个）
                     for (int i = 0; i < 20; i++) {
                         double angle = Math.random() * Math.PI * 2;
                         double radius = 0.5 + Math.random() * 0.5;
@@ -68,6 +86,7 @@ public class Shatterer extends InstantenousMobEffect {
                                 1, 0, 0, 0, 0);
                     }
 
+                    // 雪球粒子（10个）
                     for (int i = 0; i < 10; i++) {
                         double angle = Math.random() * Math.PI * 2;
                         double radius = 0.3 + Math.random() * 0.3;
@@ -87,6 +106,12 @@ public class Shatterer extends InstantenousMobEffect {
         return true;
     }
 
+    /**
+     * 效果移除事件处理
+     * 清理缓存数据
+     *
+     * @param event 效果移除事件
+     */
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
         if (event.getEffect() == FELEffects.SHATTERER) {
@@ -96,6 +121,12 @@ public class Shatterer extends InstantenousMobEffect {
         }
     }
 
+    /**
+     * 效果过期事件处理
+     * 清理缓存数据
+     *
+     * @param event 效果过期事件
+     */
     @SubscribeEvent
     public static void onEffectExpired(MobEffectEvent.Expired event) {
         if (event.getEffectInstance() != null && event.getEffectInstance().getEffect() == FELEffects.SHATTERER) {
@@ -104,8 +135,13 @@ public class Shatterer extends InstantenousMobEffect {
             triggerDamageMap.remove(entityId);
         }
     }
-    
-    /** 设置触发时的伤害 **/
+
+    /**
+     * 设置触发伤害
+     *
+     * @param entityId 实体UUID
+     * @param damage 触发伤害值
+     */
     public static void setTriggerDamage(UUID entityId, float damage) {
         triggerDamageMap.put(entityId, damage);
     }

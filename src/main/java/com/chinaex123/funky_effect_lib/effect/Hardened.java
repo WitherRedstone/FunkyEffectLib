@@ -9,30 +9,50 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 
-/** 硬化：按百分比减免所有来源的伤害 **/
+/**
+ * 硬化：按百分比减免所有来源的伤害
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>每级减免5%伤害</li>
+ *   <li>最大减免50%伤害</li>
+ *   <li>减免所有来源的伤害（近战、远程、魔法等）</li>
+ * </ol>
+ */
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Hardened extends MobEffect {
 
-    private static final float REDUCTION_PER_LEVEL = 0.10f; // 每级额外减免伤害
-    private static final float MAX_REDUCTION = 0.90f; // 最大减免伤害
+    /** 每级伤害减免 **/
+    private static final float REDUCTION_PER_LEVEL = 0.05f;
+    /** 最大伤害减免 **/
+    private static final float MAX_REDUCTION = 0.50f;
 
     public Hardened(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
     }
 
+    /**
+     * 实体受伤事件处理
+     * 根据硬化等级减免伤害
+     *
+     * @param event 实体受伤事件
+     */
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent.Pre event) {
         LivingEntity entity = event.getEntity();
+
+        // 检查实体是否拥有硬化效果
         var effect = entity.getEffect(FELEffects.HARDENED);
 
         if (effect != null) {
             int amplifier = effect.getAmplifier();
-            // 计算减伤百分比，最高60%
+            // 计算减伤百分比：等级 + 1 × 每级减免，最高50%
             float damageReduction = Math.min((amplifier + 1) * REDUCTION_PER_LEVEL, MAX_REDUCTION);
 
             if (damageReduction > 0) {
                 float originalDamage = event.getOriginalDamage();
                 float reducedDamage = originalDamage * (1.0F - damageReduction);
+                // 设置减免后的伤害，最低为0
                 event.setNewDamage(Math.max(0, reducedDamage));
             }
         }

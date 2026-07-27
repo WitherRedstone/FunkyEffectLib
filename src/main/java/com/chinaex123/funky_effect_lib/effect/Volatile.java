@@ -22,24 +22,49 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** 不稳定：受到伤害时产生爆炸，爆炸会向周围实体传播效果 **/
+/**
+ * 不稳定：受到伤害时产生爆炸，爆炸会向周围实体传播效果
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>受到伤害时触发爆炸，冷却时间50刻（2.5秒）</li>
+ *   <li>基础伤害6点，每级增加3点</li>
+ *   <li>爆炸半径3格，每级增加0.5格</li>
+ *   <li>爆炸会向周围实体传播不稳定效果</li>
+ *   <li>传播范围5格，冷却时间100刻（5秒）</li>
+ *   <li>最大传播次数3次</li>
+ *   <li>产生爆炸音效和粒子效果</li>
+ * </ol>
+ */
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Volatile extends MobEffect {
 
-    private static final int COOLDOWN_TICKS = 50; // 爆炸冷却时间
-    private static final float BASE_DAMAGE = 6.0f; // 基础伤害
-    private static final float DAMAGE_PER_LEVEL = 3.0f; // 每级额外伤害
-    private static final float EXPLOSION_RADIUS = 3.0f; // 爆炸半径
+    /** 爆炸冷却时间 **/
+    private static final int COOLDOWN_TICKS = 50;
+    /** 基础伤害 **/
+    private static final float BASE_DAMAGE = 6.0f;
+    /** 每级额外伤害 **/
+    private static final float DAMAGE_PER_LEVEL = 3.0f;
+    /** 基础爆炸半径 **/
+    private static final float EXPLOSION_RADIUS = 3.0f;
 
-    private static final int SPREAD_COOLDOWN_TICKS = 100; // 传播效果的冷却时间
-    private static final int SPREAD_DURATION = 200; // 传播效果的持续时间
-    private static final int SPREAD_AMPLIFIER = 0; // 传播效果的等级（0=1级）
-    private static final float SPREAD_RADIUS = 5.0f; // 传播范围半径
-    private static final int MAX_SPREAD_COUNT = 3; // 最大传播次数
+    /** 传播效果冷却时间 **/
+    private static final int SPREAD_COOLDOWN_TICKS = 100;
+    /** 传播效果的持续时间 **/
+    private static final int SPREAD_DURATION = 200;
+    /** 传播效果的等级 **/
+    private static final int SPREAD_AMPLIFIER = 0;
+    /** 传播范围半径 **/
+    private static final float SPREAD_RADIUS = 5.0f;
+    /** 最大传播次数 **/
+    private static final int MAX_SPREAD_COUNT = 3;
 
+    /** 缓存每个实体的爆炸冷却时间 **/
     private static final Map<UUID, Integer> cooldownMap = new HashMap<>();
-    private static final Map<UUID, Integer> spreadCooldownMap = new HashMap<>(); // 传播效果冷却记录
-    private static final Map<UUID, Integer> spreadCountMap = new HashMap<>(); // 传播次数记录
+    /** 缓存每个实体的传播冷却时间 **/
+    private static final Map<UUID, Integer> spreadCooldownMap = new HashMap<>();
+    /** 缓存每个实体的传播次数 **/
+    private static final Map<UUID, Integer> spreadCountMap = new HashMap<>();
 
     public Volatile(int color) {
         super(MobEffectCategory.HARMFUL, color);
@@ -51,7 +76,10 @@ public class Volatile extends MobEffect {
     }
 
     /**
+     * 实体受伤事件处理
      * 受到伤害时触发爆炸
+     *
+     * @param event 实体受伤事件
      */
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent.Post event) {
@@ -61,6 +89,7 @@ public class Volatile extends MobEffect {
             return;
         }
 
+        // 检查是否拥有不稳定效果
         if (!entity.hasEffect(FELEffects.VOLATILE)) {
             return;
         }
@@ -69,14 +98,16 @@ public class Volatile extends MobEffect {
         int lastExplosionTick = cooldownMap.getOrDefault(entityId, -COOLDOWN_TICKS);
         int currentTick = entity.tickCount;
 
+        // 检查冷却时间
         if (currentTick - lastExplosionTick >= COOLDOWN_TICKS) {
             cooldownMap.put(entityId, currentTick);
-            explode(entity, 0);
+            explode(entity, 0); // 初始传播次数为0
         }
     }
 
     /**
      * 爆炸方法 - 造成伤害并向周围实体传播效果
+     *
      * @param entity 爆炸源实体
      * @param spreadCount 当前传播次数
      */
@@ -85,7 +116,7 @@ public class Volatile extends MobEffect {
 
         if (!(entity.level() instanceof ServerLevel level)) return;
 
-        // 超过最大传播次数则停止
+        // 超过最大传播次数则停止传播
         if (spreadCount >= MAX_SPREAD_COUNT) {
             return;
         }
@@ -93,6 +124,7 @@ public class Volatile extends MobEffect {
         MobEffectInstance effect = entity.getEffect(FELEffects.VOLATILE);
         int amplifier = effect != null ? effect.getAmplifier() : 0;
 
+        // 计算伤害和半径
         float damage = BASE_DAMAGE + (DAMAGE_PER_LEVEL * amplifier);
         float radius = EXPLOSION_RADIUS + (amplifier * 0.5f);
 
@@ -105,11 +137,12 @@ public class Volatile extends MobEffect {
         List<Entity> nearbyEntities = level.getEntities(entity, explosionBounds,
                 e -> e instanceof LivingEntity && e != entity);
 
-        // 对爆炸范围内所有实体造成伤害，并传播效果
+        // 对爆炸范围内所有实体造成伤害
         for (Entity target : nearbyEntities) {
             LivingEntity livingTarget = (LivingEntity) target;
             double distance = target.distanceTo(entity);
             if (distance <= radius) {
+                // 距离越近伤害越高
                 float damageReduction = (float) (1.0 - (distance / radius));
                 float finalDamage = damage * damageReduction;
                 livingTarget.hurt(livingTarget.damageSources().explosion(entity, entity), finalDamage);
@@ -119,7 +152,7 @@ public class Volatile extends MobEffect {
             }
         }
 
-        // 对爆炸源本身也造成伤害
+        // 对爆炸源本身也造成一半伤害
         entity.hurt(entity.damageSources().explosion(entity, entity), damage * 0.5f);
 
         // 播放主爆炸音效
@@ -145,7 +178,12 @@ public class Volatile extends MobEffect {
     }
 
     /**
-     * 向周围实体传播 Volatile 效果
+     * 向周围实体传播不稳定效果
+     *
+     * @param level 服务端世界
+     * @param center 中心实体
+     * @param source 原始爆炸源
+     * @param newSpreadCount 新的传播次数
      */
     private static void spreadEffectToNearby(ServerLevel level, LivingEntity center, LivingEntity source, int newSpreadCount) {
         UUID centerId = center.getUUID();
@@ -174,7 +212,7 @@ public class Volatile extends MobEffect {
         List<Entity> nearbyEntities = level.getEntities(center, spreadBounds,
                 e -> e instanceof LivingEntity && e != center && e != source);
 
-        // 为范围内的每个实体添加 Volatile 效果
+        // 为范围内的每个实体添加不稳定效果
         for (Entity target : nearbyEntities) {
             LivingEntity livingTarget = (LivingEntity) target;
             double distance = target.distanceTo(center);
@@ -185,13 +223,7 @@ public class Volatile extends MobEffect {
                 int finalDuration = Math.max(SPREAD_DURATION / 2, durationModifier);
 
                 // 添加效果
-                livingTarget.addEffect(new MobEffectInstance(
-                        FELEffects.VOLATILE,
-                        finalDuration,
-                        SPREAD_AMPLIFIER,
-                        false,  // 是否显示粒子
-                        true    // 是否显示图标
-                ));
+                livingTarget.addEffect(new MobEffectInstance(FELEffects.VOLATILE, finalDuration, SPREAD_AMPLIFIER, false, true));
 
                 // 传播效果粒子提示
                 level.sendParticles(ParticleTypes.PORTAL,
@@ -214,11 +246,15 @@ public class Volatile extends MobEffect {
     }
 
     /**
+     * 实体Tick事件处理
      * 效果结束时清理冷却记录
+     *
+     * @param event 实体Tick事件
      */
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Post event) {
         if (event.getEntity() instanceof LivingEntity entity && !entity.level().isClientSide()) {
+            // 如果实体没有不稳定效果，清除所有记录
             if (!entity.hasEffect(FELEffects.VOLATILE)) {
                 cooldownMap.remove(entity.getUUID());
                 spreadCooldownMap.remove(entity.getUUID());

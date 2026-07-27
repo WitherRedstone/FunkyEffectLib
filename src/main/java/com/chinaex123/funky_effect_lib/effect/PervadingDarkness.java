@@ -27,19 +27,31 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 弥漫暗影：每2.5秒增加1层，叠至10层时死亡，通过击杀特定敌人消除1层 **/
+/**
+ * 弥漫暗影：每2.5秒增加1层，叠至10层时死亡，通过击杀特定敌人消除1层
+ **/
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class PervadingDarkness extends MobEffect {
 
     private static final ResourceLocation DARKNESS_MODIFIER = ResourceLocation.fromNamespaceAndPath(FunkyEffectLib.MOD_ID, "pervading_darkness");
-    private static final String STACK_TAG = "pervading_darkness_stack";
-    private static final int TICKS_PER_INTERVAL = 50; // 叠层的速度
-    private static final int MAX_STACK = 10; // 最大层数
-    private static final int DEATH_DELAY_TICKS = 100; // 死亡延迟时间
-    private static final float SPEED_REDUCTION_PER_STACK = 0.05f; // 每层移动速度减少量
 
+    /** NBT 存储键：当前层数 **/
+    private static final String STACK_TAG = "pervading_darkness_stack";
+
+    /** 层数增加间隔（ticks） **/
+    private static final int TICKS_PER_INTERVAL = 50;
+    /** 最大层数（达到后开始死亡倒计时） **/
+    private static final int MAX_STACK = 10;
+    /** 死亡倒计时持续 tick 数 **/
+    private static final int DEATH_DELAY_TICKS = 100;
+    /** 每层降低的移动速度（百分比） **/
+    private static final float SPEED_REDUCTION_PER_STACK = 0.05f;
+
+    /** 玩家 tick 计数器：记录距离下一次叠层的 tick 数 **/
     private static final Map<UUID, Integer> entityTickMap = new HashMap<>();
+    /** 死亡倒计时剩余 tick 数（仅当层数达到 MAX_STACK 时有效） **/
     private static final Map<UUID, Integer> deathTimerMap = new HashMap<>();
+    /** 缓存上次同步的层数，用于减少不必要的更新 **/
     private static final Map<UUID, Integer> lastStackMap = new HashMap<>();
 
     public PervadingDarkness(int color) {
@@ -56,7 +68,11 @@ public class PervadingDarkness extends MobEffect {
         return true;
     }
 
-    // ==================== 清除所有数据 ====================
+    /**
+     * 清除实体的所有弥漫暗影相关数据
+     *
+     * @param entity 目标实体
+     */
     private static void clearAllData(LivingEntity entity) {
         UUID entityId = entity.getUUID();
         CompoundTag data = entity.getPersistentData();
@@ -68,7 +84,12 @@ public class PervadingDarkness extends MobEffect {
         syncToClient(entity);
     }
 
-    // ==================== 减速效果管理 ====================
+    /**
+     * 更新移动速度减速效果
+     *
+     * @param entity 目标实体
+     * @param newStack 新的层数
+     */
     private static void updateSpeedModifier(LivingEntity entity, int newStack) {
         AttributeInstance attribute = entity.getAttribute(Attributes.MOVEMENT_SPEED);
         if (attribute == null) return;
@@ -76,17 +97,20 @@ public class PervadingDarkness extends MobEffect {
         UUID entityId = entity.getUUID();
         Integer lastStack = lastStackMap.get(entityId);
 
+        // 如果层数未变化，跳过更新
         if (lastStack != null && lastStack == newStack) {
             return;
         }
 
+        // 移除旧的修改器
         attribute.removeModifier(DARKNESS_MODIFIER);
 
+        // 如果层数大于0，添加新的减速效果
         if (newStack > 0) {
             double reduction = SPEED_REDUCTION_PER_STACK * newStack;
             AttributeModifier modifier = new AttributeModifier(
                     DARKNESS_MODIFIER,
-                    -reduction,
+                    -reduction,  // 负值表示减速
                     AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
             );
             attribute.addTransientModifier(modifier);
@@ -95,6 +119,11 @@ public class PervadingDarkness extends MobEffect {
         lastStackMap.put(entityId, newStack);
     }
 
+    /**
+     * 移除移动速度减速效果
+     *
+     * @param entity 目标实体
+     */
     private static void removeSpeedModifier(LivingEntity entity) {
         AttributeInstance attribute = entity.getAttribute(Attributes.MOVEMENT_SPEED);
         if (attribute != null) {
@@ -102,16 +131,28 @@ public class PervadingDarkness extends MobEffect {
         }
     }
 
-    // ==================== 层数操作 ====================
+    /**
+     * 获取实体的当前层数
+     *
+     * @param entity 目标实体
+     * @return 当前层数
+     */
     private static int getStack(LivingEntity entity) {
         CompoundTag data = entity.getPersistentData();
         return data.getInt(STACK_TAG);
     }
 
+    /**
+     * 设置实体的层数
+     *
+     * @param entity 目标实体
+     * @param stack 要设置的层数
+     */
     private static void setStack(LivingEntity entity, int stack) {
         CompoundTag data = entity.getPersistentData();
 
         if (stack <= 0) {
+            // 层数为0，清除所有数据并移除效果
             clearAllData(entity);
             entity.removeEffect(FELEffects.PERVADING_DARKNESS);
         } else {
@@ -119,6 +160,7 @@ public class PervadingDarkness extends MobEffect {
             data.putInt(STACK_TAG, newStack);
             updateSpeedModifier(entity, newStack);
 
+            // 如果达到最大层数，启动死亡倒计时
             if (newStack >= MAX_STACK) {
                 deathTimerMap.put(entity.getUUID(), 0);
             }
@@ -126,19 +168,36 @@ public class PervadingDarkness extends MobEffect {
         }
     }
 
+    /**
+     * 增加层数
+     *
+     * @param entity 目标实体
+     * @param amount 增加的层数
+     */
     private static void addStack(LivingEntity entity, int amount) {
         int current = getStack(entity);
         setStack(entity, current + amount);
     }
 
+    /**
+     * 减少层数
+     *
+     * @param entity 目标实体
+     * @param amount 减少的层数
+     */
     private static void removeStack(LivingEntity entity, int amount) {
         int current = getStack(entity);
         int newStack = current - amount;
         setStack(entity, Math.max(newStack, 0));
+        // 移除死亡倒计时（如果层数降低到最大层数以下）
         deathTimerMap.remove(entity.getUUID());
     }
 
-    // ==================== 客户端同步 ====================
+    /**
+     * 同步层数到客户端
+     *
+     * @param entity 目标实体
+     */
     private static void syncToClient(LivingEntity entity) {
         if (entity instanceof ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer,
@@ -146,11 +205,16 @@ public class PervadingDarkness extends MobEffect {
         }
     }
 
-    // ==================== 效果添加时重置层数 ====================
+    /**
+     * 效果添加事件处理
+     * 如果实体已有层数数据，先清除再重新开始
+     *
+     * @param event 效果添加事件
+     */
     @SubscribeEvent
     public static void onEffectAdded(MobEffectEvent.Added event) {
-        if (event.getEffectInstance() != null &&
-                event.getEffectInstance().getEffect() == FELEffects.PERVADING_DARKNESS) {
+        event.getEffectInstance();
+        if (event.getEffectInstance().getEffect() == FELEffects.PERVADING_DARKNESS) {
             LivingEntity entity = event.getEntity();
             // 检查是否有旧的层数残留，如果有则清除
             if (getStack(entity) > 0) {
@@ -159,7 +223,12 @@ public class PervadingDarkness extends MobEffect {
         }
     }
 
-    // ==================== 玩家登录时同步 ====================
+    /**
+     * 玩家登录事件处理
+     * 同步层数到客户端并恢复减速效果
+     *
+     * @param event 玩家登录事件
+     */
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
@@ -175,38 +244,53 @@ public class PervadingDarkness extends MobEffect {
         }
     }
 
-    // ==================== 击杀特定敌人消除1层 ====================
+    /**
+     * 击杀事件处理
+     * 击杀特定敌人时减少1层
+     *
+     * @param event 实体死亡事件
+     */
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
         LivingEntity target = event.getEntity();
 
+        // 检查目标是否为特定类型敌人
         if (!target.getType().is(FELEntityTypeTags.PERVADING_DARKNESS_MOB)) {
             return;
         }
 
+        // 检查击杀者是否为LivingEntity
         if (!(event.getSource().getEntity() instanceof LivingEntity killer)) {
             return;
         }
 
+        // 检查击杀者是否拥有弥漫暗影效果
         if (!killer.hasEffect(FELEffects.PERVADING_DARKNESS) || killer.level().isClientSide()) {
             return;
         }
 
+        // 减少1层
         int currentStack = getStack(killer);
         if (currentStack > 0) {
             removeStack(killer, 1);
         }
     }
 
-    // ==================== 叠层逻辑 ====================
+    /**
+     * 实体Tick事件处理
+     * 管理层数叠加和死亡逻辑
+     *
+     * @param event 实体Tick事件
+     */
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Post event) {
+        // 仅处理LivingEntity，且仅在服务端执行
         if (!(event.getEntity() instanceof LivingEntity entity) || entity.level().isClientSide()) {
             return;
         }
 
+        // 如果玩家没有弥漫暗影效果，清除所有数据
         if (!entity.hasEffect(FELEffects.PERVADING_DARKNESS)) {
-            // 没有效果时，确保清除所有数据
             if (getStack(entity) > 0) {
                 clearAllData(entity);
             }
@@ -216,10 +300,12 @@ public class PervadingDarkness extends MobEffect {
         UUID entityId = entity.getUUID();
         int currentStack = getStack(entity);
 
+        // 达到最大层数：死亡倒计时
         if (currentStack >= MAX_STACK) {
             int deathTicks = deathTimerMap.getOrDefault(entityId, 0) + 1;
 
             if (deathTicks >= DEATH_DELAY_TICKS) {
+                // 清除数据并杀死实体
                 clearAllData(entity);
                 entity.hurt(entity.damageSources().magic(), Float.MAX_VALUE);
             } else {
@@ -228,9 +314,11 @@ public class PervadingDarkness extends MobEffect {
             return;
         }
 
+        // 未达最大层数：叠加层数
         int ticks = entityTickMap.getOrDefault(entityId, 0) + 1;
 
         if (ticks >= TICKS_PER_INTERVAL) {
+            // 达到间隔时间，增加1层
             entityTickMap.put(entityId, 0);
             addStack(entity, 1);
         } else {
@@ -238,7 +326,12 @@ public class PervadingDarkness extends MobEffect {
         }
     }
 
-    // ==================== 效果移除时清除数据 ====================
+    /**
+     * 效果移除事件处理
+     * 效果被手动移除时清除所有数据
+     *
+     * @param event 效果移除事件
+     */
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
         if (event.getEffect() == FELEffects.PERVADING_DARKNESS) {
@@ -246,6 +339,12 @@ public class PervadingDarkness extends MobEffect {
         }
     }
 
+    /**
+     * 效果过期事件处理
+     * 效果自然过期时清除所有数据
+     *
+     * @param event 效果过期事件
+     */
     @SubscribeEvent
     public static void onEffectExpired(MobEffectEvent.Expired event) {
         MobEffectInstance instance = event.getEffectInstance();

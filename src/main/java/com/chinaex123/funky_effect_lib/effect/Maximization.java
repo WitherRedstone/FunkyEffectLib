@@ -21,7 +21,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 巨大化：增大玩家体型 **/
+/**
+ * 巨大化：增大玩家体型，带来多种增益和减益
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>体型缩放：低等级每级+0.8，高等级每级+1.0，最大15倍</li>
+ *   <li>步进高度每级+0.5</li>
+ *   <li>交互范围每级+1.0</li>
+ *   <li>攻击伤害：基础+1.5，每级+0.5，最大+100</li>
+ *   <li>最大生命值每级+10，最大+200</li>
+ *   <li>移动速度每级减少2.5%，最大减少50%</li>
+ *   <li>跳跃强度每级减少，最大减少2%</li>
+ *   <li>安全坠落距离每级+0.5</li>
+ * </ol>
+ */
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Maximization extends MobEffect {
 
@@ -35,25 +49,41 @@ public class Maximization extends MobEffect {
     private static final ResourceLocation JUMP_STRENGTH_MODIFIER = ResourceLocation.fromNamespaceAndPath(FunkyEffectLib.MOD_ID, "maximization_jump_strength");
     private static final ResourceLocation SAFE_FALL_DISTANCE_MODIFIER = ResourceLocation.fromNamespaceAndPath(FunkyEffectLib.MOD_ID, "maximization_safe_fall_distance");
 
-    // 增益效果
-    private static final double SCALE_PER_LEVEL_LOW = 0.8; // 低等级每级体型增加
-    private static final double SCALE_PER_LEVEL_HIGH = 1.0; // 高等级每级体型增加
-    private static final double MAX_SCALE = 15.0; // 最大体型限制
-    private static final double STEP_HEIGHT_PER_LEVEL = 0.5; // 每级增加的步进高度
-    private static final double INTERACTION_RANGE_PER_LEVEL = 1.0; // 每级增加的交互范围
-    private static final double ATTACK_DAMAGE_BASE = 1.5; // 基础增加的攻击力
-    private static final double ATTACK_DAMAGE_PER_LEVEL = 0.5;  // 每级增加的攻击力
-    private static final double MAX_ATTACK_DAMAGE = 100.0; // 最大增加的攻击力上限
-    private static final double MAX_HEALTH_PER_LEVEL = 10.0; // 每级增加的最大生命值
-    private static final double MAX_MAX_HEALTH = 200.0; // 最大生命值上限
-    private static final double SAFE_FALL_DISTANCE_PER_LEVEL = 0.5; // 每级增加的安全坠落距离
+    // ==================== 增益效果 ====================
+    /** 低等级（0-3级）每级体型增加 **/
+    private static final double SCALE_PER_LEVEL_LOW = 0.8;
+    /** 高等级（4级以上）每级体型增加 **/
+    private static final double SCALE_PER_LEVEL_HIGH = 1.0;
+    /** 最大体型限制 **/
+    private static final double MAX_SCALE = 15.0;
+    /** 每级增加的步进高度 **/
+    private static final double STEP_HEIGHT_PER_LEVEL = 0.5;
+    /** 每级增加的交互范围 **/
+    private static final double INTERACTION_RANGE_PER_LEVEL = 1.0;
+    /** 基础增加的攻击力 **/
+    private static final double ATTACK_DAMAGE_BASE = 1.5;
+    /** 每级增加的攻击力 **/
+    private static final double ATTACK_DAMAGE_PER_LEVEL = 0.5;
+    /** 最大增加的攻击力上限 **/
+    private static final double MAX_ATTACK_DAMAGE = 100.0;
+    /** 每级增加的最大生命值 **/
+    private static final double MAX_HEALTH_PER_LEVEL = 10.0;
+    /** 最大生命值上限 **/
+    private static final double MAX_MAX_HEALTH = 200.0;
+    /** 每级增加的安全坠落距离 **/
+    private static final double SAFE_FALL_DISTANCE_PER_LEVEL = 0.5;
 
-    // 减益效果
-    private static final double MOVEMENT_SPEED_REDUCTION_PER_LEVEL = -0.025; // 每级移动速度减少2.5%
-    private static final double MAX_MOVEMENT_SPEED_REDUCTION = -0.5; // 最大移动速度减少上限50%
-    private static final double JUMP_STRENGTH_REDUCTION_PER_LEVEL = -0.005; // 每级跳跃强度减少
-    private static final double MAX_JUMP_STRENGTH_REDUCTION = -0.02; // 最大跳跃强度减少上限
+    // ==================== 减益效果 ====================
+    /** 每级移动速度减少 **/
+    private static final double MOVEMENT_SPEED_REDUCTION_PER_LEVEL = -0.025;
+    /** 最大移动速度减少上限 **/
+    private static final double MAX_MOVEMENT_SPEED_REDUCTION = -0.5;
+    /** 每级跳跃强度减少 **/
+    private static final double JUMP_STRENGTH_REDUCTION_PER_LEVEL = -0.005;
+    /** 最大跳跃强度减少上限 **/
+    private static final double MAX_JUMP_STRENGTH_REDUCTION = -0.02;
 
+    /** 缓存每个实体上次应用的等级 **/
     private static final Map<UUID, Integer> lastAmplifierMap = new HashMap<>();
 
     public Maximization(int color) {
@@ -70,8 +100,15 @@ public class Maximization extends MobEffect {
         return true;
     }
 
+    /**
+     * 实体Tick事件处理
+     * 管理巨大化效果的属性修改
+     *
+     * @param event 实体Tick事件
+     */
     @SubscribeEvent
     public static void onEntityTick(EntityTickEvent.Post event) {
+        // 仅处理LivingEntity
         if (!(event.getEntity() instanceof LivingEntity entity)) {
             return;
         }
@@ -83,6 +120,7 @@ public class Maximization extends MobEffect {
         UUID entityId = entity.getUUID();
         MobEffectInstance effect = entity.getEffect(FELEffects.MAXIMIZATION);
 
+        // 如果效果消失，清除所有属性修改
         if (effect == null) {
             removeAllBonuses(entity);
             lastAmplifierMap.remove(entityId);
@@ -92,12 +130,19 @@ public class Maximization extends MobEffect {
         int amplifier = effect.getAmplifier();
         Integer lastAmplifier = lastAmplifierMap.get(entityId);
 
+        // 如果等级发生变化，重新应用所有属性修改
         if (lastAmplifier == null || lastAmplifier != amplifier) {
             applyMaximizationEffects(entity, amplifier);
             lastAmplifierMap.put(entityId, amplifier);
         }
     }
 
+    /**
+     * 应用巨大化的所有效果
+     *
+     * @param entity 目标实体
+     * @param amplifier 效果等级
+     */
     private static void applyMaximizationEffects(LivingEntity entity, int amplifier) {
         int level = amplifier + 1;  // 实际等级（I级=1，II级=2，以此类推）
 
@@ -128,11 +173,11 @@ public class Maximization extends MobEffect {
         double maxHealth = Math.min(level * MAX_HEALTH_PER_LEVEL, MAX_MAX_HEALTH);
         updateAttribute(entity, Attributes.MAX_HEALTH, MAX_HEALTH_MODIFIER, maxHealth, AttributeModifier.Operation.ADD_VALUE);
 
-        // 移动速度
+        // 移动速度（减益）
         double movementSpeed = Math.max(MAX_MOVEMENT_SPEED_REDUCTION, level * MOVEMENT_SPEED_REDUCTION_PER_LEVEL);
         updateAttribute(entity, Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED_MODIFIER, movementSpeed, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 
-        // 跳跃力度
+        // 跳跃力度（减益）
         double jumpStrength = Math.max(MAX_JUMP_STRENGTH_REDUCTION, level * JUMP_STRENGTH_REDUCTION_PER_LEVEL);
         updateAttribute(entity, Attributes.JUMP_STRENGTH, JUMP_STRENGTH_MODIFIER, jumpStrength, AttributeModifier.Operation.ADD_VALUE);
 
@@ -140,6 +185,15 @@ public class Maximization extends MobEffect {
         updateAttribute(entity, Attributes.SAFE_FALL_DISTANCE, SAFE_FALL_DISTANCE_MODIFIER, level * SAFE_FALL_DISTANCE_PER_LEVEL, AttributeModifier.Operation.ADD_VALUE);
     }
 
+    /**
+     * 更新属性修改器
+     *
+     * @param entity 目标实体
+     * @param attribute 属性类型
+     * @param id 修改器ID
+     * @param amount 修改量
+     * @param operation 操作类型
+     */
     private static void updateAttribute(LivingEntity entity, Holder<Attribute> attribute, ResourceLocation id, double amount, AttributeModifier.Operation operation) {
         AttributeInstance instance = entity.getAttribute(attribute);
         if (instance != null) {
@@ -148,6 +202,11 @@ public class Maximization extends MobEffect {
         }
     }
 
+    /**
+     * 清除所有属性修改
+     *
+     * @param entity 目标实体
+     */
     public static void removeAllBonuses(LivingEntity entity) {
         removeBonus(entity, Attributes.SCALE, SCALE_MODIFIER);
         removeBonus(entity, Attributes.STEP_HEIGHT, STEP_HEIGHT_MODIFIER);
@@ -160,6 +219,13 @@ public class Maximization extends MobEffect {
         removeBonus(entity, Attributes.SAFE_FALL_DISTANCE, SAFE_FALL_DISTANCE_MODIFIER);
     }
 
+    /**
+     * 移除单个属性修改器
+     *
+     * @param entity 目标实体
+     * @param attribute 属性类型
+     * @param id 修改器ID
+     */
     private static void removeBonus(LivingEntity entity, Holder<Attribute> attribute, ResourceLocation id) {
         AttributeInstance instance = entity.getAttribute(attribute);
         if (instance != null) {
