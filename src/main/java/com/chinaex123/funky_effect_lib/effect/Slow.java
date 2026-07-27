@@ -1,7 +1,7 @@
 package com.chinaex123.funky_effect_lib.effect;
 
 import com.chinaex123.funky_effect_lib.FunkyEffectLib;
-import com.chinaex123.funky_effect_lib.api.SlowAPI;
+import com.chinaex123.funky_effect_lib.api.event.Slow.SlowAPI;
 import com.chinaex123.funky_effect_lib.init.FELEffects;
 import com.chinaex123.funky_effect_lib.network.NetworkHandler;
 import com.chinaex123.funky_effect_lib.network.effect.SlowSyncPacket;
@@ -117,20 +117,12 @@ public class Slow extends MobEffect {
                 tickMap.put(entityId, 0);
                 int stacks = SlowAPI.getStacks(entity);
                 if (stacks < SlowAPI.MAX_STACKS) {
-                    // 叠加层数
-                    stacks = Math.min(stacks + STACKS_PER_INTERVAL, SlowAPI.MAX_STACKS);
-                    SlowAPI.setStacksInternal(entity, stacks);
-                    syncStacks(entity, stacks);
+                    SlowAPI.addStacks(entity, STACKS_PER_INTERVAL);
 
                     // 生成雪花粒子
                     serverLevel.sendParticles(ParticleTypes.SNOWFLAKE,
                             entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(),
                             8, 0.4, 0.4, 0.4, 0.02);
-
-                    // 达到最大层数，触发冻结
-                    if (stacks >= SlowAPI.MAX_STACKS) {
-                        triggerFreeze(entity);
-                    }
                 }
             }
         }
@@ -142,7 +134,6 @@ public class Slow extends MobEffect {
      * @param entity 目标实体
      */
     public static void triggerFreeze(LivingEntity entity) {
-        // 清除减速层数
         SlowAPI.clearStacks(entity);
         syncStacks(entity, 0);
         // 移除减速效果
