@@ -83,6 +83,13 @@ public class NetworkHandler {
                     SlowSyncPacket::handle
             );
 
+            // 灼烧的同步包
+            CHANNEL.registerMessage(packetId++, ScorchSyncPacket.class,
+                    ScorchSyncPacket::encode,
+                    ScorchSyncPacket::decode,
+                    ScorchSyncPacket::handle
+            );
+
         });
     }
 }

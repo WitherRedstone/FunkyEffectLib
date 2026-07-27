@@ -50,6 +50,12 @@ public class ClientConfig {
     public static final ForgeConfigSpec.IntValue SLOW_DISPLAY_Y;
     public static final ForgeConfigSpec.IntValue SLOW_PADDING;
 
+    public static final ForgeConfigSpec.ConfigValue<String> SCORCH_COLOR_TEXT;
+    public static final ForgeConfigSpec.ConfigValue<String> SCORCH_COLOR_BACKGROUND;
+    public static final ForgeConfigSpec.IntValue SCORCH_DISPLAY_X;
+    public static final ForgeConfigSpec.IntValue SCORCH_DISPLAY_Y;
+    public static final ForgeConfigSpec.IntValue SCORCH_PADDING;
+
     // 矿石颜色配置
     public static final ForgeConfigSpec.ConfigValue<String> ORE_COLOR_IRON;
     public static final ForgeConfigSpec.ConfigValue<String> ORE_COLOR_GOLD;
@@ -207,6 +213,25 @@ public class ClientConfig {
                 .comment("显示位置 Y 坐标")
                 .defineInRange("displayY", 116, 0, Integer.MAX_VALUE);
         SLOW_PADDING = builder
+                .comment("背景内边距")
+                .defineInRange("padding", 2, 0, 50);
+        builder.pop();
+
+        builder.push("Scorch Display");
+        builder.comment("灼烧显示配置");
+        SCORCH_COLOR_TEXT = builder
+                .comment("文本颜色 (十六进制格式，如 #FF5555 或 0xFF5555)")
+                .define("colorText", "#FF5555");
+        SCORCH_COLOR_BACKGROUND = builder
+                .comment("背景颜色 (十六进制格式，如 #88000000 或 0x88000000)")
+                .define("colorBackground", "#88000000");
+        SCORCH_DISPLAY_X = builder
+                .comment("显示位置 X 坐标")
+                .defineInRange("displayX", 4, 0, Integer.MAX_VALUE);
+        SCORCH_DISPLAY_Y = builder
+                .comment("显示位置 Y 坐标")
+                .defineInRange("displayY", 127, 0, Integer.MAX_VALUE);
+        SCORCH_PADDING = builder
                 .comment("背景内边距")
                 .defineInRange("padding", 2, 0, 50);
         builder.pop();

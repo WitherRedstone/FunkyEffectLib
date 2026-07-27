@@ -1,6 +1,5 @@
 package com.chinaex123.funky_effect_lib.api.event.BoltCharge;
 
-import com.chinaex123.funky_effect_lib.api.BoltChargeAPI;
 import net.minecraft.world.entity.LivingEntity;
 
 /**

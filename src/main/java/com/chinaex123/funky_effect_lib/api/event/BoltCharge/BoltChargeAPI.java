@@ -1,8 +1,7 @@
-package com.chinaex123.funky_effect_lib.api;
+package com.chinaex123.funky_effect_lib.api.event.BoltCharge;
 
 import com.chinaex123.funky_effect_lib.FunkyEffectLib;
-import com.chinaex123.funky_effect_lib.api.event.BoltCharge.BoltChargeDischargedEvent;
-import com.chinaex123.funky_effect_lib.api.event.BoltCharge.BoltChargeReceivedEvent;
+import com.chinaex123.funky_effect_lib.api.LightningStrikeAPI;
 import com.chinaex123.funky_effect_lib.effect.BoltCharge;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
