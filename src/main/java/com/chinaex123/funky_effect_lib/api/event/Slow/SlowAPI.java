@@ -1,4 +1,4 @@
-package com.chinaex123.funky_effect_lib.api;
+package com.chinaex123.funky_effect_lib.api.event.Slow;
 
 import com.chinaex123.funky_effect_lib.FunkyEffectLib;
 import com.chinaex123.funky_effect_lib.effect.Slow;
