@@ -70,5 +70,12 @@ public class NetworkHandler {
                 SlowSyncPacket.STREAM_CODEC,
                 SlowSyncPacket::handle
         );
+
+        // 灼烧的同步包
+        registrar.playToClient(
+                ScorchSyncPacket.TYPE,
+                ScorchSyncPacket.STREAM_CODEC,
+                ScorchSyncPacket::handle
+        );
     }
 }

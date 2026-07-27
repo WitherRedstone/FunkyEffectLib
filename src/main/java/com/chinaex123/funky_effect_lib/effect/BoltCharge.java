@@ -1,7 +1,7 @@
 package com.chinaex123.funky_effect_lib.effect;
 
 import com.chinaex123.funky_effect_lib.FunkyEffectLib;
-import com.chinaex123.funky_effect_lib.api.BoltChargeAPI;
+import com.chinaex123.funky_effect_lib.api.event.BoltCharge.BoltChargeAPI;
 import com.chinaex123.funky_effect_lib.init.FELEffects;
 import com.chinaex123.funky_effect_lib.network.effect.BoltChargeSyncPacket;
 import net.minecraft.nbt.CompoundTag;

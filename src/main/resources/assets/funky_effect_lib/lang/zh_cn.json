@@ -248,11 +248,12 @@
 
   "entity.funky_effect_lib.afterimage_clone": "残影分身",
 
+  "gui.funky_effect_lib.soulburn": "魂燃",
   "gui.funky_effect_lib.pervading_darkness": "弥漫暗影 x%s",
   "gui.funky_effect_lib.creeping_darkness": "蔓延黑暗 x%s",
   "gui.funky_effect_lib.frost_armor": "冰霜护甲 x%s %ss",
   "gui.funky_effect_lib.woven_mail": "织造铠甲 x%s %ss",
   "gui.funky_effect_lib.bolt_charge": "电光充能 x%s",
   "gui.funky_effect_lib.slow_stacks": "减速层数 %s/%s",
-  "gui.funky_effect_lib.soulburn": "魂燃"
+  "gui.funky_effect_lib.scorch": "灼烧 x%s"
 }
