@@ -10,7 +10,12 @@ import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.common.MinecraftForge;
 
-/** 电光充能公共 API 类 **/
+/**
+ * 电光充能公共 API 类
+ * <p>
+ * 提供电光充能层数的管理、存储、同步和触发闪电功能
+ * 充能层数存储在实体的持久化数据中，支持服务端与客户端同步
+ */
 public class BoltChargeAPI {
 
     /** 充能层数在持久化数据中的存储键 **/
@@ -20,78 +25,123 @@ public class BoltChargeAPI {
 
     /** 最大充能层数 **/
     public static final int MAX_CHARGES = 10;
-
-    /** 闪电造成的伤害值 **/
+    /** 闪电造成的默认伤害值 **/
     public static final float LIGHTNING_DAMAGE = 5.0f;
 
-    /** 获取实体的当前充能层数 **/
+    /**
+     * 获取实体的当前充能层数
+     *
+     * @param entity 目标实体
+     * @return 当前充能层数
+     */
     public static int getChargeCount(LivingEntity entity) {
         CompoundTag persistentData = entity.getPersistentData();
         String key = CHARGE_COUNT_KEY.toString();
         return persistentData.getInt(key);
     }
 
-    /** 设置实体的充能层数 **/
+    /**
+     * 设置实体的充能层数
+     *
+     * @param entity 目标实体
+     * @param count 要设置的层数
+     */
     public static void setChargeCountInternal(LivingEntity entity, int count) {
         CompoundTag persistentData = entity.getPersistentData();
         String key = CHARGE_COUNT_KEY.toString();
         persistentData.putInt(key, Math.min(count, MAX_CHARGES));
     }
 
-    /** 获取实体的上次充能时间 **/
+    /**
+     * 获取实体的上次充能时间
+     *
+     * @param entity 目标实体
+     * @return 上次充能的时间戳（毫秒）
+     */
     public static long getLastChargeTime(LivingEntity entity) {
         CompoundTag persistentData = entity.getPersistentData();
         String key = LAST_CHARGE_TIME_KEY.toString();
         return persistentData.getLong(key);
     }
 
-    /** 设置实体的上次充能时间 **/
+    /**
+     * 设置实体的上次充能时间
+     *
+     * @param entity 目标实体
+     * @param time 时间戳（毫秒）
+     */
     public static void setLastChargeTime(LivingEntity entity, long time) {
         CompoundTag persistentData = entity.getPersistentData();
         String key = LAST_CHARGE_TIME_KEY.toString();
         persistentData.putLong(key, time);
     }
 
-    /** 为实体增加指定数量的充能层数 **/
+    /**
+     * 为实体增加指定数量的充能层数
+     *
+     * @param entity 目标实体
+     * @param amount 增加的层数（正数）
+     */
     public static void addCharge(LivingEntity entity, int amount) {
         int current = getChargeCount(entity);
         int newCount = Math.min(current + amount, MAX_CHARGES);
         setChargeCountInternal(entity, newCount);
         BoltCharge.syncToClient(entity, newCount);
-        
+
         if (amount > 0) {
+            // 发布电光充能接收事件
             MinecraftForge.EVENT_BUS.post(new BoltChargeReceivedEvent(entity, amount, current, newCount));
         }
     }
 
-    /** 设置实体的充能层数为指定值 **/
+    /**
+     * 设置实体的充能层数为指定值
+     *
+     * @param entity 目标实体
+     * @param count 要设置的层数
+     */
     public static void setChargeCount(LivingEntity entity, int count) {
         int current = getChargeCount(entity);
         int newCount = Math.min(count, MAX_CHARGES);
         setChargeCountInternal(entity, newCount);
         BoltCharge.syncToClient(entity, newCount);
-        
+
         if (newCount != current) {
             int amountAdded = newCount - current;
+            // 发布电光充能接收事件
             MinecraftForge.EVENT_BUS.post(new BoltChargeReceivedEvent(entity, amountAdded, current, newCount));
         }
     }
 
-    /** 清除实体的所有充能数据 **/
+    /**
+     * 清除实体的所有充能数据（层数和时间）
+     *
+     * @param entity 目标实体
+     */
     public static void clearCharges(LivingEntity entity) {
         CompoundTag persistentData = entity.getPersistentData();
         persistentData.remove(CHARGE_COUNT_KEY.toString());
         persistentData.remove(LAST_CHARGE_TIME_KEY.toString());
     }
 
-    /** 在目标实体位置召唤一道闪电，由攻击者触发 **/
+    /**
+     * 在目标实体位置召唤闪电并消耗所有充能
+     *
+     * @param target 闪电击中的目标实体
+     * @param attacker 触发闪电的实体（充能消耗者）
+     */
     public static void triggerLightning(LivingEntity target, LivingEntity attacker) {
+        // 在目标位置召唤闪电
         LightningBolt lightning = LightningStrikeAPI.strike(target, attacker, LIGHTNING_DAMAGE, true, false);
-        
+
+        // 记录释放前的充能层数
         int previousCount = getChargeCount(attacker);
+
+        // 清除所有充能
         clearCharges(attacker);
         BoltCharge.syncToClient(attacker, 0);
-        
+
+        // 发布电光充能释放事件
         MinecraftForge.EVENT_BUS.post(new BoltChargeDischargedEvent(attacker, MAX_CHARGES, target, lightning, previousCount));
     }
 }

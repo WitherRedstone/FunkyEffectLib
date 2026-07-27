@@ -1,6 +1,5 @@
 package com.chinaex123.funky_effect_lib.entity;
 
-import com.chinaex123.funky_effect_lib.FunkyEffectLib;
 import com.chinaex123.funky_effect_lib.init.FELEntityTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -154,7 +153,7 @@ public class AfterimageClone extends LivingEntity {
     }
 
     @Override
-    public void setItemSlot(EquipmentSlot slot, ItemStack stack) {
+    public void setItemSlot(@NotNull EquipmentSlot slot, ItemStack stack) {
     }
 
     @Override
@@ -163,7 +162,7 @@ public class AfterimageClone extends LivingEntity {
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         if (tag.hasUUID("OwnerUUID")) {
             this.ownerUUID = tag.getUUID("OwnerUUID");
@@ -174,7 +173,7 @@ public class AfterimageClone extends LivingEntity {
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         if (ownerUUID != null) {
             tag.putUUID("OwnerUUID", ownerUUID);

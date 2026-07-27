@@ -5,11 +5,25 @@ import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
-/** 危险感知：显示周围的敌对生物 **/
+/**
+ * 危险感知：显示周围的敌对生物
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>基础检测半径为8格</li>
+ *   <li>每级增加4格检测半径</li>
+ *   <li>最大检测半径为32格</li>
+ *   <li>效果本身不执行逻辑，由客户端渲染类处理显示</li>
+ * </ol>
+ */
 public class DangerSense extends MobEffect {
 
-    private static final int BASE_DETECTION_RADIUS = 8; // 基础检测半径
-    private static final int ADDITIONAL_RADIUS_PER_LEVEL = 4; // 每个等级增加的检测半径
+    /** 基础检测半径 **/
+    private static final int BASE_DETECTION_RADIUS = 8;
+    /** 每级增加的检测半径 **/
+    private static final int ADDITIONAL_RADIUS_PER_LEVEL = 4;
+    /** 最大检测半径 **/
+    private static final int MAX_DETECTION_RADIUS = 32;
 
     public DangerSense(int color) {
         super(MobEffectCategory.NEUTRAL, color);
@@ -23,7 +37,13 @@ public class DangerSense extends MobEffect {
         return true;
     }
 
+    /**
+     * 获取检测半径
+     *
+     * @param amplifier 效果等级
+     * @return 检测半径（格）
+     */
     public static int getDetectionRadius(int amplifier) {
-        return Math.min(32, BASE_DETECTION_RADIUS + (amplifier * ADDITIONAL_RADIUS_PER_LEVEL));
+        return Math.min(MAX_DETECTION_RADIUS, BASE_DETECTION_RADIUS + (amplifier * ADDITIONAL_RADIUS_PER_LEVEL));
     }
 }

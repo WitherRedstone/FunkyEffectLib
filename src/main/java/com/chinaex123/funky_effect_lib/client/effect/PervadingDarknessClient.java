@@ -16,19 +16,31 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** 弥漫暗影客户端处理类 **/
+/**
+ * 弥漫暗影客户端处理类
+ * <p>
+ * 功能：在客户端显示弥漫暗影的层数HUD
+ */
 @OnlyIn(Dist.CLIENT)
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = FunkyEffectLib.MOD_ID)
 public class PervadingDarknessClient {
 
-
-
+    /** 缓存每个玩家的弥漫暗影层数 **/
     private static final Map<UUID, Integer> STACK_CACHE = new ConcurrentHashMap<>();
 
+    /**
+     * 设置指定玩家的弥漫暗影层数
+     * 仅在客户端玩家自身匹配时更新缓存
+     *
+     * @param playerUuid 玩家UUID
+     * @param stack 层数
+     */
     public static void setStack(UUID playerUuid, int stack) {
         Minecraft minecraft = Minecraft.getInstance();
+        // 只缓存本地玩家的数据
         if (minecraft.player != null && minecraft.player.getUUID().equals(playerUuid)) {
             if (stack <= 0) {
+                // 层数为0时移除缓存
                 STACK_CACHE.remove(playerUuid);
             } else {
                 STACK_CACHE.put(playerUuid, stack);
@@ -36,6 +48,12 @@ public class PervadingDarknessClient {
         }
     }
 
+    /**
+     * 在游戏界面上渲染弥漫暗影层数显示
+     * 在游戏画面渲染结束后绘制HUD
+     *
+     * @param event 渲染GUI事件
+     */
     @SubscribeEvent
     public static void onRenderGui(RenderGuiEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -44,11 +62,13 @@ public class PervadingDarknessClient {
         UUID playerUuid = minecraft.player.getUUID();
         Integer stack = STACK_CACHE.get(playerUuid);
 
+        // 如果没有层数或层数为0，不显示
         if (stack == null || stack <= 0) return;
 
         GuiGraphics guiGraphics = event.getGuiGraphics();
         Font font = minecraft.font;
 
+        // 从配置读取显示参数
         int colorText = ClientConfig.parseColor(ClientConfig.PERVADING_DARKNESS_COLOR_TEXT.get());
         int colorBackground = ClientConfig.parseColor(ClientConfig.PERVADING_DARKNESS_COLOR_BACKGROUND.get());
         int displayX = ClientConfig.PERVADING_DARKNESS_DISPLAY_X.get();
@@ -56,7 +76,7 @@ public class PervadingDarknessClient {
         int padding = ClientConfig.PERVADING_DARKNESS_PADDING.get();
         double scale = ClientConfig.GLOBAL_SCALE.get();
 
-        // 文字部分（在原始尺寸下计算）
+        // 准备显示文本
         String text = Component.translatable("gui.funky_effect_lib.pervading_darkness", stack).getString();
         int textWidth = font.width(text);
         int lineHeight = font.lineHeight;
@@ -66,21 +86,22 @@ public class PervadingDarknessClient {
         int scaledLineHeight = (int) (lineHeight * scale);
         int scaledPadding = (int) (padding * scale);
 
-        // 背景位置（使用缩放后的尺寸，在原始坐标系中计算）
+        // 计算背景位置和大小（在原始坐标系中）
         int bgX = displayX - scaledPadding;
         int bgY = displayY - scaledPadding / 2;
         int bgWidth = scaledTextWidth + scaledPadding * 2;
         int bgHeight = scaledLineHeight + scaledPadding;
 
-        // 绘制背景（原始坐标系）
+        // 绘制半透明背景
         guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, colorBackground);
 
-        // 绘制文字（先平移到目标位置，再缩放）
+        // 绘制文字（使用缩放变换）
         guiGraphics.pose().pushPose();
-        // 先平移到文字左上角位置，再缩放
+        // 平移至目标位置
         guiGraphics.pose().translate(displayX, displayY, 0);
+        // 应用缩放
         guiGraphics.pose().scale((float) scale, (float) scale, 1.0f);
-        // 在缩放后的坐标系中从 (0,0) 开始绘制
+        // 在缩放后的坐标系中从 (0,0) 开始绘制文字
         guiGraphics.drawString(font, text, 0, 0, colorText);
         guiGraphics.pose().popPose();
     }

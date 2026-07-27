@@ -18,13 +18,26 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 隐身：完全隐身状态并消除生物对你的仇恨 **/
+/**
+ * 隐身：完全隐身状态并消除生物对你的仇恨
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>将实体设置为完全不可见</li>
+ *   <li>效果开始时清除16格内所有怪物的仇恨</li>
+ *   <li>持续阻止怪物将隐身玩家设为目标</li>
+ *   <li>效果结束时恢复可见</li>
+ *   <li>使用hasCleared标记确保只清除一次仇恨</li>
+ * </ol>
+ */
 @Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Invisibility extends MobEffect {
 
-    private static final double DETECTION_RANGE = 16.0; // 半径范围，用于检测怪物是否对玩家有仇恨
+    /** 仇恨清除范围 **/
+    private static final double DETECTION_RANGE = 16.0;
 
-    private static final Map<UUID, Boolean> hasCleared = new HashMap<>(); // 记录每个实体是否已清除仇恨
+    /** 记录每个实体是否已清除仇恨 **/
+    private static final Map<UUID, Boolean> hasCleared = new HashMap<>();
 
     public Invisibility(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
@@ -32,9 +45,12 @@ public class Invisibility extends MobEffect {
 
     @Override
     public void applyEffectTick(@NotNull LivingEntity entity, int amplifier) {
+        // 仅在服务端执行
         if (!entity.level().isClientSide()) {
+            // 设置实体为不可见
             entity.setInvisible(true);
 
+            // 首次应用效果时清除周围怪物的仇恨
             UUID uuid = entity.getUUID();
             if (!hasCleared.getOrDefault(uuid, false)) {
                 AABB area = entity.getBoundingBox().inflate(DETECTION_RANGE);
@@ -54,19 +70,25 @@ public class Invisibility extends MobEffect {
     }
 
     /**
-     * 持续阻止怪物将隐形玩家设为目标
+     * 持续阻止怪物将隐身玩家设为目标
+     *
+     * @param event 实体变更目标事件
      */
     @SubscribeEvent
     public static void onLivingChangeTarget(LivingChangeTargetEvent event) {
         LivingEntity newTarget = event.getNewTarget();
 
+        // 如果新目标拥有隐身效果，取消本次目标变更
         if (newTarget != null && newTarget.hasEffect(FELEffects.INVISIBILITY.get())) {
             event.setCanceled(true);
         }
     }
 
     /**
+     * 玩家Tick事件处理
      * 效果结束时恢复可见
+     *
+     * @param event 玩家Tick事件
      */
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
@@ -76,6 +98,7 @@ public class Invisibility extends MobEffect {
 
         LivingEntity entity = event.player;
 
+        // 如果实体没有隐身效果但仍然可见，恢复可见状态
         if (!entity.hasEffect(FELEffects.INVISIBILITY.get()) && entity.isInvisible()) {
             entity.setInvisible(false);
             hasCleared.remove(entity.getUUID());

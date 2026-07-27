@@ -21,14 +21,29 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-/** 丰饶：破坏农作物时有概率双倍掉落，并有概率恢复饥饿值 **/
+/**
+ * 丰饶：破坏农作物时有概率双倍掉落，并有概率恢复饥饿值
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>基础双倍掉落概率25%，每级增加5%</li>
+ *   <li>基础恢复饥饿值概率15%，每级增加5%</li>
+ *   <li>双倍掉落时同时双倍经验值</li>
+ *   <li>恢复饥饿值每次恢复1点，不超过20点</li>
+ *   <li>仅对农作物有效（使用CROPS标签）</li>
+ * </ol>
+ */
 @Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Bountiful extends MobEffect {
 
-    private static final float DOUBLE_DROP_CHANCE = 0.25f; // 基础双倍掉落概率
-    private static final float CHANCE_PER_LEVEL = 0.05f; // 每级增加的概率
-    private static final float HUNGER_RESTORE_CHANCE = 0.15f; // 基础恢复饥饿值概率
-    private static final int HUNGER_RESTORE_AMOUNT = 1; // 恢复饥饿值数量
+    /** 基础双倍掉落概率 **/
+    private static final float DOUBLE_DROP_CHANCE = 0.25f;
+    /** 每级增加的双倍掉落概率 **/
+    private static final float CHANCE_PER_LEVEL = 0.05f;
+    /** 基础恢复饥饿值概率 **/
+    private static final float HUNGER_RESTORE_CHANCE = 0.15f;
+    /** 恢复饥饿值数量 **/
+    private static final int HUNGER_RESTORE_AMOUNT = 1;
 
     public Bountiful(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
@@ -42,25 +57,35 @@ public class Bountiful extends MobEffect {
         return true;
     }
 
+    /**
+     * 方块破坏事件处理
+     * 当玩家破坏农作物时，触发双倍掉落和恢复饥饿值效果
+     *
+     * @param event 方块破坏事件
+     */
     @SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
         Player player = event.getPlayer();
 
+        // 仅在服务端执行
         if (player.level().isClientSide()) {
             return;
         }
 
+        // 检查玩家是否拥有丰饶效果
         MobEffectInstance effect = player.getEffect(FELEffects.BOUNTIFUL.get());
         if (effect == null) {
             return;
         }
 
         BlockState state = event.getState();
+        // 仅处理农作物
         if (!isCrop(state)) {
             return;
         }
 
         int amplifier = effect.getAmplifier();
+        // 计算概率：基础 + 等级 × 每级加成
         float doubleDropChance = DOUBLE_DROP_CHANCE + (amplifier * CHANCE_PER_LEVEL);
         float hungerRestoreChance = HUNGER_RESTORE_CHANCE + (amplifier * CHANCE_PER_LEVEL);
 
@@ -108,6 +133,13 @@ public class Bountiful extends MobEffect {
         }
     }
 
+    /**
+     * 判断方块是否为农作物
+     * 使用Minecraft的CROPS标签
+     *
+     * @param state 方块状态
+     * @return true表示是农作物
+     */
     private static boolean isCrop(BlockState state) {
         return state.is(BlockTags.CROPS);
     }

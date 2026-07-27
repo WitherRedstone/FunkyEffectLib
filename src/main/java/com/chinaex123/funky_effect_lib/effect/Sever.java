@@ -18,17 +18,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 瓦解：大幅降低攻击力 **/
+/**
+ * 瓦解：大幅降低攻击力
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>基础攻击力降低35%</li>
+ *   <li>每级额外降低10%攻击力</li>
+ *   <li>效果等级变化时自动更新攻击力降低</li>
+ *   <li>效果消失时恢复攻击力</li>
+ * </ol>
+ */
 @Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Sever extends MobEffect {
 
     private static final UUID ATTACK_DAMAGE_MODIFIER_UUID = UUID.fromString("F8A9B0C1-2D3E-4F4A-5B6C-7D8E9F0A1B2C");
     private static final String ATTACK_DAMAGE_MODIFIER_STRING = UUID.nameUUIDFromBytes("sever_damage".getBytes()).toString();
 
-    private static final float BASE_ATTACK_DAMAGE_REDUCTION = -0.35f; // 基础攻击力降低
-    private static final float ADDITIONAL_REDUCTION_PER_LEVEL = -0.10f; // 每级额外降低攻击力
+    /** 基础攻击力降低 **/
+    private static final float BASE_ATTACK_DAMAGE_REDUCTION = -0.35f;
+    /** 每级额外降低攻击力 **/
+    private static final float ADDITIONAL_REDUCTION_PER_LEVEL = -0.10f;
 
-    private static final Map<UUID, Integer> lastAmplifierMap = new HashMap<>(); // 记录每个实体的上一个等级
+    /** 缓存每个实体上次应用的等级 **/
+    private static final Map<UUID, Integer> lastAmplifierMap = new HashMap<>();
 
     public Sever(int color) {
         super(MobEffectCategory.HARMFUL, color);
@@ -42,6 +55,12 @@ public class Sever extends MobEffect {
         return true;
     }
 
+    /**
+     * 玩家Tick事件处理
+     * 管理瓦解效果的攻击力降低
+     *
+     * @param event 玩家Tick事件
+     */
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) {
@@ -57,6 +76,7 @@ public class Sever extends MobEffect {
         UUID entityId = entity.getUUID();
         MobEffectInstance effect = entity.getEffect(FELEffects.SEVER.get());
 
+        // 如果效果消失，清除攻击力降低
         if (effect == null) {
             clearAttackDamageReduction(entity);
             lastAmplifierMap.remove(entityId);
@@ -66,17 +86,27 @@ public class Sever extends MobEffect {
         int amplifier = effect.getAmplifier();
         Integer lastAmplifier = lastAmplifierMap.get(entityId);
 
+        // 如果等级发生变化，重新计算攻击力降低
         if (lastAmplifier == null || lastAmplifier != amplifier) {
+            // 计算攻击力降低：基础 + 等级 × 每级加成
             float reduction = BASE_ATTACK_DAMAGE_REDUCTION + (amplifier * ADDITIONAL_REDUCTION_PER_LEVEL);
             applyAttackDamageReduction(entity, reduction);
             lastAmplifierMap.put(entityId, amplifier);
         }
     }
 
+    /**
+     * 应用攻击力降低
+     *
+     * @param entity 目标实体
+     * @param reduction 攻击力降低量（负值）
+     */
     private static void applyAttackDamageReduction(LivingEntity entity, float reduction) {
         AttributeInstance attackDamage = entity.getAttribute(Attributes.ATTACK_DAMAGE);
         if (attackDamage != null) {
+            // 移除旧的修改器，避免重复叠加
             attackDamage.removeModifier(ATTACK_DAMAGE_MODIFIER_UUID);
+            // 添加新的修改器
             attackDamage.addTransientModifier(new AttributeModifier(
                     ATTACK_DAMAGE_MODIFIER_UUID,
                     ATTACK_DAMAGE_MODIFIER_STRING,
@@ -86,6 +116,11 @@ public class Sever extends MobEffect {
         }
     }
 
+    /**
+     * 清除攻击力降低
+     *
+     * @param entity 目标实体
+     */
     private static void clearAttackDamageReduction(LivingEntity entity) {
         AttributeInstance attackDamage = entity.getAttribute(Attributes.ATTACK_DAMAGE);
         if (attackDamage != null) {

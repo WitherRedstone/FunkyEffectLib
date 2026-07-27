@@ -16,27 +16,51 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 易怒：效果生效期间受伤获得愤怒 **/
+/**
+ * 易怒：效果生效期间受伤获得愤怒效果
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>每受伤5次获得1级愤怒效果</li>
+ *   <li>愤怒效果基础持续100刻（5秒），每级增加100刻</li>
+ *   <li>受伤冷却时间为50刻（2.5秒）</li>
+ *   <li>若200刻（10秒）未受伤，移除易怒效果</li>
+ * </ol>
+ */
 @Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Irritable extends MobEffect {
 
-    private static final int BASE_DURATION = 100; // 基础持续时间
-    private static final int DURATION_INCREASE_PER_STACK = 100; // 每级增加的时间
-    private static final int HITS_PER_STACK = 5; // 受伤次数增加一级
-    private static final int COOLDOWN_TICKS = 50; // 受伤冷却
-    private static final int REMOVE_EFFECT_TICKS = 200; // 无受伤移除效果的间隔
+    /** 愤怒效果基础持续时间 **/
+    private static final int BASE_DURATION = 100;
+    /** 每级愤怒效果增加的持续时间 **/
+    private static final int DURATION_INCREASE_PER_STACK = 100;
+    /** 升级所需受伤次数 **/
+    private static final int HITS_PER_STACK = 5;
+    /** 受伤冷却时间 **/
+    private static final int COOLDOWN_TICKS = 50;
+    /** 未受伤移除效果的间隔 **/
+    private static final int REMOVE_EFFECT_TICKS = 200;
 
-    private static final Map<UUID, Integer> hitCountMap = new HashMap<>();  // 每个玩家的受伤次数
-    private static final Map<UUID, Long> lastHitTimeMap = new HashMap<>();  // 每个玩家的上次受伤时间
+    /** 缓存每个玩家的受伤次数 **/
+    private static final Map<UUID, Integer> hitCountMap = new HashMap<>();
+    /** 缓存每个玩家的上次受伤时间 **/
+    private static final Map<UUID, Long> lastHitTimeMap = new HashMap<>();
 
     public Irritable(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
     }
 
+    /**
+     * 实体受伤事件处理
+     * 受伤时累积次数，达到阈值时获得愤怒效果
+     *
+     * @param event 实体受伤事件
+     */
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent event) {
         LivingEntity entity = event.getEntity();
 
+        // 仅对玩家有效
         if (!(entity instanceof Player player)) {
             return;
         }
@@ -45,7 +69,7 @@ public class Irritable extends MobEffect {
             return;
         }
 
-        // 检查是否有易怒效果
+        // 检查是否拥有易怒效果
         if (!player.hasEffect(FELEffects.IRRITABLE.get())) {
             UUID playerId = player.getUUID();
             hitCountMap.remove(playerId);
@@ -69,10 +93,11 @@ public class Irritable extends MobEffect {
         int hitCount = hitCountMap.getOrDefault(playerId, 0) + 1;
         hitCountMap.put(playerId, hitCount);
 
-        // 计算 愤怒 效果的等级和持续时间
+        // 计算愤怒效果等级和持续时间
         int angryLevel = hitCount / HITS_PER_STACK;
         int angryDuration = BASE_DURATION + (angryLevel * DURATION_INCREASE_PER_STACK);
 
+        // 添加愤怒效果
         MobEffectInstance angryEffect = new MobEffectInstance(
                 FELEffects.ANGRY.get(),
                 angryDuration,
@@ -83,6 +108,12 @@ public class Irritable extends MobEffect {
         player.addEffect(angryEffect);
     }
 
+    /**
+     * 玩家Tick事件处理
+     * 检查是否长时间未受伤，若是则移除易怒效果
+     *
+     * @param event 玩家Tick事件
+     */
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) {
@@ -95,6 +126,7 @@ public class Irritable extends MobEffect {
             return;
         }
 
+        // 检查是否拥有易怒效果
         if (!player.hasEffect(FELEffects.IRRITABLE.get())) {
             return;
         }
@@ -108,7 +140,7 @@ public class Irritable extends MobEffect {
 
         long currentTime = player.level().getGameTime();
 
-        // 检查未受伤的时间
+        // 如果超过10秒未受伤，移除易怒效果
         if (currentTime - lastHitTime >= REMOVE_EFFECT_TICKS) {
             player.removeEffect(FELEffects.IRRITABLE.get());
             hitCountMap.remove(playerId);

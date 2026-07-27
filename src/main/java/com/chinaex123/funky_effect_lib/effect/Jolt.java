@@ -26,17 +26,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** 震颤：受到攻击时产生连锁闪电伤害周围的生物 **/
+/**
+ * 震颤：受到攻击时产生连锁闪电伤害周围的生物
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>受到伤害时触发连锁闪电</li>
+ *   <li>冷却时间为50刻（2.5秒）</li>
+ *   <li>连锁半径为8格，最多连锁5个目标</li>
+ *   <li>基础伤害4点，每级增加2点</li>
+ *   <li>产生大量闪电和粒子视觉效果</li>
+ * </ol>
+ */
 @Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Jolt extends MobEffect {
 
-    private static final int COOLDOWN_TICKS = 50; // 冷却时间
-    private static final double CHAIN_RADIUS = 8.0; // 连锁半径
-    private static final int MAX_CHAIN_TARGETS = 5; // 最多连锁5个目标
-    private static final float BASE_DAMAGE = 4.0f; // 基础伤害
-    private static final float DAMAGE_PER_LEVEL = 2.0f; // 每级额外伤害
+    /** 冷却时间 **/
+    private static final int COOLDOWN_TICKS = 50;
+    /** 连锁半径 **/
+    private static final double CHAIN_RADIUS = 8.0;
+    /** 最大连锁目标数 **/
+    private static final int MAX_CHAIN_TARGETS = 5;
+    /** 基础伤害 **/
+    private static final float BASE_DAMAGE = 4.0f;
+    /** 每级额外伤害 **/
+    private static final float DAMAGE_PER_LEVEL = 2.0f;
 
-    private static final Map<UUID, Integer> cooldownMap = new HashMap<>(); // 记录每个实体的冷却时间
+    /** 缓存每个实体的冷却时间 **/
+    private static final Map<UUID, Integer> cooldownMap = new HashMap<>();
 
     public Jolt(int color) {
         super(MobEffectCategory.HARMFUL, color);
@@ -51,13 +68,16 @@ public class Jolt extends MobEffect {
     }
 
     /**
+     * 实体受伤事件处理
      * 受到伤害时触发连锁闪电
+     *
+     * @param event 实体受伤事件
      */
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent event) {
         LivingEntity target = event.getEntity();
 
-        // 检查是否有 Jolt 效果
+        // 检查是否拥有震颤效果
         MobEffectInstance effect = target.getEffect(FELEffects.JOLT.get());
         if (effect == null || target.level().isClientSide()) {
             return;
@@ -67,15 +87,16 @@ public class Jolt extends MobEffect {
         int currentTick = target.tickCount;
         int lastTriggerTick = cooldownMap.getOrDefault(entityId, -COOLDOWN_TICKS);
 
-        // 检查冷却
+        // 检查冷却时间
         if (currentTick - lastTriggerTick < COOLDOWN_TICKS) {
             return;
         }
 
-        // 更新冷却
+        // 更新冷却时间
         cooldownMap.put(entityId, currentTick);
 
         int amplifier = effect.getAmplifier();
+        // 计算伤害：基础 + 等级 × 每级加成
         float damage = BASE_DAMAGE + (DAMAGE_PER_LEVEL * amplifier);
 
         // 触发连锁闪电
@@ -84,6 +105,9 @@ public class Jolt extends MobEffect {
 
     /**
      * 触发连锁闪电
+     *
+     * @param source 触发源实体
+     * @param damage 伤害值
      */
     private static void triggerChainLightning(LivingEntity source, float damage) {
         if (!(source.level() instanceof ServerLevel level)) {
@@ -92,7 +116,7 @@ public class Jolt extends MobEffect {
 
         Vec3 sourcePos = source.position();
 
-        // 生成视觉闪电（无伤害）在源实体位置
+        // 在源实体位置生成视觉闪电
         spawnVisualLightning(level, sourcePos);
 
         // 获取范围内的所有生物
@@ -110,7 +134,7 @@ public class Jolt extends MobEffect {
             return;
         }
 
-        // 创建伤害源
+        // 创建震颤伤害源
         DamageSource joltDamage = new DamageSource(
                 level.registryAccess()
                         .registryOrThrow(Registries.DAMAGE_TYPE)
@@ -126,13 +150,13 @@ public class Jolt extends MobEffect {
             LivingEntity target = targets.get(i);
             Vec3 targetPos = target.position();
 
-            // 在每个目标位置也生成视觉闪电
+            // 在每个目标位置生成视觉闪电
             spawnVisualLightning(level, targetPos);
 
             // 造成伤害
             target.hurt(joltDamage, damage);
 
-            // 产生闪电连锁视觉效果
+            // 产生连锁闪电视觉效果
             spawnChainLightningEffect(level, previousPos, targetPos);
 
             // 在目标位置产生闪电粒子
@@ -143,7 +167,10 @@ public class Jolt extends MobEffect {
     }
 
     /**
-     * 生成视觉闪电（无伤害，纯视觉效果）
+     * 生成视觉闪电
+     *
+     * @param level 服务端世界
+     * @param pos 闪电位置
      */
     private static void spawnVisualLightning(ServerLevel level, Vec3 pos) {
         LightningBolt lightning = EntityType.LIGHTNING_BOLT.create(level);
@@ -155,10 +182,13 @@ public class Jolt extends MobEffect {
     }
 
     /**
-     * 产生闪电特效（单点）
+     * 产生闪电粒子特效（单点）
+     *
+     * @param level 服务端世界
+     * @param pos 粒子位置
      */
     private static void spawnLightningEffect(ServerLevel level, Vec3 pos) {
-        // 闪电粒子
+        // 电火花粒子
         for (int i = 0; i < 15; i++) {
             double offsetX = (level.random.nextDouble() - 0.5) * 1.5;
             double offsetY = level.random.nextDouble() * 2;
@@ -188,13 +218,17 @@ public class Jolt extends MobEffect {
 
     /**
      * 产生连锁闪电视觉效果（两点之间）
+     *
+     * @param level 服务端世界
+     * @param from 起始点
+     * @param to 终点
      */
     private static void spawnChainLightningEffect(ServerLevel level, Vec3 from, Vec3 to) {
         Vec3 direction = to.subtract(from);
         double distance = direction.length();
         Vec3 step = direction.scale(1.0 / Math.max(distance, 1));
 
-        // 沿着两点之间的线段产生粒子
+        // 沿着两点之间的线段产生电火花粒子
         for (double t = 0; t <= distance; t += 0.3) {
             Vec3 current = from.add(step.scale(t));
 
@@ -221,7 +255,10 @@ public class Jolt extends MobEffect {
     }
 
     /**
+     * 玩家Tick事件处理
      * 效果结束时清理冷却记录
+     *
+     * @param event 玩家Tick事件
      */
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
@@ -231,6 +268,7 @@ public class Jolt extends MobEffect {
 
         LivingEntity entity = event.player;
 
+        // 如果实体没有震颤效果，清除冷却记录
         if (!entity.hasEffect(FELEffects.JOLT.get())) {
             cooldownMap.remove(entity.getUUID());
         }

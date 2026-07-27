@@ -15,19 +15,32 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-/** 虚弱：生物将承受额外伤害并减慢移动速度 **/
+/**
+ * 虚弱：生物将承受额外伤害并减慢移动速度
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>基础减速5%</li>
+ *   <li>基础额外伤害35%，每级增加20%</li>
+ *   <li>伤害倍率 = 1.0 + (基础额外伤害 + 每级额外伤害 × 等级)</li>
+ * </ol>
+ */
 @Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Vulnerable extends MobEffect {
 
     private static final String SPEED_MODIFIER_STRING = UUID.nameUUIDFromBytes("vulnerable_speed".getBytes()).toString();
 
-    private static final float BASE_SPEED_REDUCTION = -0.05f; // 基础减速
-    private static final float BASE_EXTRA_DAMAGE = 0.35f; // 基础额外伤害
-    private static final float EXTRA_DAMAGE_PER_LEVEL = 0.20f; // 每级额外增加
+    /** 基础减速 **/
+    private static final float BASE_SPEED_REDUCTION = -0.05f;
+    /** 基础额外伤害 **/
+    private static final float BASE_EXTRA_DAMAGE = 0.35f;
+    /** 每级额外伤害 **/
+    private static final float EXTRA_DAMAGE_PER_LEVEL = 0.20f;
 
     public Vulnerable(int color) {
         super(MobEffectCategory.HARMFUL, color);
 
+        // 添加移动速度修改器
         this.addAttributeModifier(
                 Attributes.MOVEMENT_SPEED,
                 SPEED_MODIFIER_STRING,
@@ -45,7 +58,10 @@ public class Vulnerable extends MobEffect {
     }
 
     /**
-     * 监听伤害事件，增加受到的伤害
+     * 实体受伤事件处理
+     * 增加受到伤害
+     *
+     * @param event 实体受伤事件
      */
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent event) {
@@ -55,14 +71,14 @@ public class Vulnerable extends MobEffect {
             return;
         }
 
-        // 检查是否有 Vulnerable 效果
+        // 检查是否拥有虚弱效果
         MobEffectInstance effect = entity.getEffect(FELEffects.VULNERABLE.get());
         if (effect == null) {
             return;
         }
 
         int amplifier = effect.getAmplifier();
-        // 计算额外伤害倍率：基础1.0 + (基础额外伤害 + 每级额外伤害 × 等级)
+        // 计算伤害倍率：基础1.0 + (基础额外伤害 + 每级额外伤害 × 等级)
         float damageMultiplier = 1.0f + (BASE_EXTRA_DAMAGE + (EXTRA_DAMAGE_PER_LEVEL * amplifier));
 
         // 修改即将受到的伤害

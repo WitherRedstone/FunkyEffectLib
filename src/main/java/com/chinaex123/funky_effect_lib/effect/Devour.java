@@ -20,23 +20,43 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 吞食：击杀敌人可回血、延长持续时间并叠加移速 **/
+/**
+ * 吞食：击杀敌人可回血、延长持续时间并叠加移速，击杀足够数量后升级
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>每次击杀恢复2点生命值</li>
+ *   <li>每次击杀延长100刻（5秒）持续时间</li>
+ *   <li>每击杀10个敌人升1级，最多4级（最高5级）</li>
+ *   <li>升级时额外恢复4点生命值</li>
+ *   <li>每次击杀增加0.2%移速，最高20%</li>
+ * </ol>
+ */
 @Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Devour extends MobEffect {
 
     private static final UUID SPEED_MODIFIER_UUID = UUID.fromString("32d4db92-95c5-4d9a-aad8-4f70bb0ba8f5");
     private static final String SPEED_MODIFIER_STRING = UUID.nameUUIDFromBytes("devour_speed".getBytes()).toString();
 
-    private static final int EXTEND_DURATION = 100; // 每次击杀延长 5秒
-    private static final int LEVEL_UP_NEED = 10; // 需要击杀 10次 才能升级
-    private static final int MAX_LEVEL = 4; // 最高5级
-    private static final int LEVEL_DURATION = 300; // 升级后持续时间 15秒
-    private static final int MAX_DURATION = 1800; // 最高5级时最大持续时间 1分30秒
-    private static final float SPEED_BOOST_PER_KILL = 0.002f; // 每次击杀增加的速度
-    private static final float MAX_SPEED_BOOST = 0.20f; // 最大速度限制
+    /** 每次击杀延长持续时间 **/
+    private static final int EXTEND_DURATION = 100;
+    /** 升级所需击杀数 **/
+    private static final int LEVEL_UP_NEED = 10;
+    /** 最高等级 **/
+    private static final int MAX_LEVEL = 4;
+    /** 升级后持续时间 **/
+    private static final int LEVEL_DURATION = 300;
+    /** 最高等级时最大持续时间 **/
+    private static final int MAX_DURATION = 1800;
+    /** 每次击杀增加的移速 **/
+    private static final float SPEED_BOOST_PER_KILL = 0.002f;
+    /** 最大移速加成 **/
+    private static final float MAX_SPEED_BOOST = 0.20f;
 
-    private static final Map<UUID, Integer> killCountMap = new HashMap<>(); // 记录每个实体的击杀次数
-    private static final Map<UUID, Integer> levelKillCountMap = new HashMap<>(); // 记录每个实体的当前等级击杀次数
+    /** 缓存每个实体的总击杀数 **/
+    private static final Map<UUID, Integer> killCountMap = new HashMap<>();
+    /** 缓存每个实体当前等级的击杀数 **/
+    private static final Map<UUID, Integer> levelKillCountMap = new HashMap<>();
 
     public Devour(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
@@ -52,6 +72,8 @@ public class Devour extends MobEffect {
 
     /**
      * 根据击杀次数应用速度加成
+     *
+     * @param entity 目标实体
      */
     private static void applySpeedModifier(LivingEntity entity) {
         AttributeInstance movementSpeed = entity.getAttribute(Attributes.MOVEMENT_SPEED);
@@ -60,8 +82,10 @@ public class Devour extends MobEffect {
         UUID uuid = entity.getUUID();
         int killCount = killCountMap.getOrDefault(uuid, 0);
 
+        // 移除旧的修改器
         movementSpeed.removeModifier(SPEED_MODIFIER_UUID);
 
+        // 计算速度加成（上限20%）
         float speedBonus = Math.min(killCount * SPEED_BOOST_PER_KILL, MAX_SPEED_BOOST);
 
         if (speedBonus > 0) {
@@ -74,6 +98,11 @@ public class Devour extends MobEffect {
         }
     }
 
+    /**
+     * 移除速度加成
+     *
+     * @param entity 目标实体
+     */
     private static void removeSpeedModifier(LivingEntity entity) {
         AttributeInstance movementSpeed = entity.getAttribute(Attributes.MOVEMENT_SPEED);
         if (movementSpeed != null) {
@@ -82,10 +111,14 @@ public class Devour extends MobEffect {
     }
 
     /**
-     * 击杀生物时触发
+     * 击杀事件处理
+     * 触发吞食效果：回血、延长持续时间、升级、加速
+     *
+     * @param event 实体死亡事件
      */
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
+        // 检查击杀者是否为LivingEntity
         if (!(event.getSource().getEntity() instanceof LivingEntity killer)) {
             return;
         }
@@ -94,6 +127,7 @@ public class Devour extends MobEffect {
             return;
         }
 
+        // 检查击杀者是否拥有吞食效果
         MobEffectInstance effect = killer.getEffect(FELEffects.DEVOUR.get());
         if (effect == null) {
             return;
@@ -103,7 +137,7 @@ public class Devour extends MobEffect {
         int currentLevel = effect.getAmplifier();
         int currentDuration = effect.getDuration();
 
-        // 增加总击杀计数（用于速度）
+        // 增加总击杀计数（用于移速）
         int currentKillCount = killCountMap.getOrDefault(killerId, 0);
         killCountMap.put(killerId, currentKillCount + 1);
 
@@ -117,22 +151,22 @@ public class Devour extends MobEffect {
         // 检查是否可以升级
         if (newLevelKills >= LEVEL_UP_NEED && newLevel < MAX_LEVEL) {
             newLevel++;
-            newLevelKills = 0;  // 重置当前等级击杀计数
-            newDuration = LEVEL_DURATION;  // 升级后重置为15秒
+            newLevelKills = 0;
+            newDuration = LEVEL_DURATION;
 
             // 升级时额外回血
             if (killer instanceof Player player) {
                 player.heal(4.0f);
             }
         } else if (newLevel >= MAX_LEVEL) {
-            // 达到最高等级后，限制最大持续时间为1分30秒
+            // 达到最高等级后，限制最大持续时间
             newDuration = Math.min(newDuration, MAX_DURATION);
         }
 
         // 更新当前等级的击杀计数
         levelKillCountMap.put(killerId, newLevelKills);
 
-        // 添加新效果（使用 addEffect 而不是 forceAddEffect）
+        // 添加新效果
         killer.addEffect(new MobEffectInstance(
                 FELEffects.DEVOUR.get(),
                 newDuration,
@@ -145,12 +179,15 @@ public class Devour extends MobEffect {
         // 击杀回血
         killer.heal(2.0f);
 
-        // 应用速度加成
+        // 应用移速加成
         applySpeedModifier(killer);
     }
 
     /**
+     * 玩家Tick事件处理
      * 效果结束时清理数据
+     *
+     * @param event 玩家Tick事件
      */
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
@@ -164,6 +201,7 @@ public class Devour extends MobEffect {
             return;
         }
 
+        // 如果玩家没有吞食效果，清除所有数据
         if (!entity.hasEffect(FELEffects.DEVOUR.get())) {
             if (killCountMap.containsKey(entity.getUUID()) || levelKillCountMap.containsKey(entity.getUUID())) {
                 killCountMap.remove(entity.getUUID());

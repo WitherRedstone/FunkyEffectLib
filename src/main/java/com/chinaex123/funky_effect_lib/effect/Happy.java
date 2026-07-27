@@ -14,16 +14,27 @@ import net.minecraftforge.fml.common.Mod;
 
 import java.util.UUID;
 
-/** 高兴：增加移动速度，攻击或受伤时移除 **/
+/**
+ * 高兴：增加移动速度，攻击或受伤时移除
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>基础速度加成15%，每级增加15%</li>
+ *   <li>受到伤害时效果被移除</li>
+ *   <li>攻击时效果被移除</li>
+ *   <li>效果被移除时自动清除速度加成</li>
+ * </ol>
+ */
 @Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Happy extends MobEffect {
 
-    // 移动速度配置
     private static final UUID HAPPY_SPEED_MODIFIER_UUID = UUID.fromString("d236af5e-286e-4340-91f9-aecc1fed0a06");
     private static final String HAPPY_SPEED_MODIFIER_STRING = UUID.nameUUIDFromBytes("happy_speed".getBytes()).toString();
 
-    private static final float BASE_SPEED_BONUS = 0.15f; // 基础速度加成
-    private static final float EXTRA_SPEED_PER_LEVEL = 0.15f; // 每级额外速度加成
+    /** 基础速度加成 **/
+    private static final float BASE_SPEED_BONUS = 0.15f;
+    /** 每级额外速度加成 **/
+    private static final float EXTRA_SPEED_PER_LEVEL = 0.15f;
 
     public Happy(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
@@ -31,11 +42,15 @@ public class Happy extends MobEffect {
 
     @Override
     public void applyEffectTick(LivingEntity entity, int amplifier) {
+        // 仅在服务端执行
         if (!entity.level().isClientSide()) {
             AttributeInstance instance = entity.getAttribute(Attributes.MOVEMENT_SPEED);
             if (instance != null) {
+                // 移除旧的修改器
                 instance.removeModifier(HAPPY_SPEED_MODIFIER_UUID);
+                // 计算速度加成：基础 + 等级 × 每级加成
                 float speedBonus = BASE_SPEED_BONUS + (amplifier * EXTRA_SPEED_PER_LEVEL);
+                // 添加新的修改器
                 instance.addTransientModifier(new AttributeModifier(
                         HAPPY_SPEED_MODIFIER_UUID,
                         HAPPY_SPEED_MODIFIER_STRING,
@@ -46,6 +61,16 @@ public class Happy extends MobEffect {
         }
     }
 
+    @Override
+    public boolean isDurationEffectTick(int duration, int amplifier) {
+        return true;
+    }
+
+    /**
+     * 移除速度加成
+     *
+     * @param entity 目标实体
+     */
     private static void removeBonus(LivingEntity entity) {
         AttributeInstance instance = entity.getAttribute(Attributes.MOVEMENT_SPEED);
         if (instance != null) {
@@ -54,7 +79,10 @@ public class Happy extends MobEffect {
     }
 
     /**
-     * 监听受到伤害事件 - 移除高兴效果
+     * 受到伤害事件处理
+     * 受到伤害时移除高兴效果
+     *
+     * @param event 实体受伤事件
      */
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent event) {
@@ -64,13 +92,18 @@ public class Happy extends MobEffect {
 
         LivingEntity entity = event.getEntity();
         if (entity.hasEffect(FELEffects.HAPPY.get())) {
+            // 移除速度加成
             removeBonus(entity);
+            // 移除效果
             entity.removeEffect(FELEffects.HAPPY.get());
         }
     }
 
     /**
-     * 监听攻击事件 - 移除高兴效果
+     * 攻击事件处理
+     * 攻击时移除高兴效果
+     *
+     * @param event 实体受伤事件
      */
     @SubscribeEvent
     public static void onPlayerAttack(LivingDamageEvent event) {
@@ -78,16 +111,14 @@ public class Happy extends MobEffect {
             return;
         }
 
+        // 检查攻击者是否为LivingEntity
         if (event.getSource().getEntity() instanceof LivingEntity attacker) {
             if (attacker.hasEffect(FELEffects.HAPPY.get())) {
+                // 移除速度加成
                 removeBonus(attacker);
+                // 移除效果
                 attacker.removeEffect(FELEffects.HAPPY.get());
             }
         }
-    }
-
-    @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        return true;
     }
 }

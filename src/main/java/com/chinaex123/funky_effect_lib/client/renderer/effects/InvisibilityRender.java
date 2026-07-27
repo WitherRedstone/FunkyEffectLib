@@ -9,30 +9,44 @@ import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-/** 隐身渲染类：完全隐藏实体渲染（包括盔甲和手持物） **/
+/**
+ * 隐身渲染类
+ * <p>
+ * 功能：完全隐藏拥有隐身效果的实体的渲染
+ */
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = FunkyEffectLib.MOD_ID)
 public class InvisibilityRender {
 
     /**
-     * 完全隐藏实体渲染（包括盔甲和手持物）
+     * 实体渲染事件处理
+     * 完全隐藏拥有隐身效果的实体渲染
+     *
+     * @param event 实体渲染事件
      */
     @SubscribeEvent
     public static void onRenderLiving(RenderLivingEvent.Pre<?, ?> event) {
         LivingEntity entity = event.getEntity();
+        // 检查实体是否拥有隐身效果
         if (entity.hasEffect(FELEffects.INVISIBILITY.get())) {
+            // 取消实体渲染，实现完全隐身
             event.setCanceled(true);
         }
     }
 
     /**
-     * 隐藏名字标签
+     * 名字标签渲染事件处理
+     * 隐藏拥有隐身效果的实体的名字标签
+     *
+     * @param event 名字标签渲染事件
      */
     @SubscribeEvent
     public static void onRenderNameTag(RenderNameTagEvent event) {
+        // 获取实体的控制乘客
         LivingEntity entity = event.getEntity().getControllingPassenger();
 
-        // 如果实体有隐身效果，直接取消事件渲染来隐藏名字标签
+        // 如果实体拥有隐身效果，不显示名字标签
         if (entity != null && entity.hasEffect(FELEffects.INVISIBILITY.get())) {
+            // 取消名字标签渲染
             event.setCanceled(true);
         }
     }

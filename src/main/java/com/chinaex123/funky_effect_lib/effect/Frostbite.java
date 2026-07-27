@@ -21,19 +21,34 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** 霜寒：使生物冻结 **/
+/**
+ * 霜寒：使生物冻结，根据等级产生不同效果
+ * <p>
+ * 机制：
+ * <ol>
+ *   <li>1级：减速15%</li>
+ *   <li>2级及以上：冰冻效果（增加冰冻时间）</li>
+ *   <li>持续生成雪花粒子效果</li>
+ *   <li>效果移除或过期时自动清除减速修改器</li>
+ * </ol>
+ */
 @Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Frostbite extends MobEffect {
 
     private static final UUID FROSTBITE_MODIFIER_UUID = UUID.fromString("cece3398-f923-45eb-b959-b00ce61e32fd");
     private static final String FROSTBITE_MODIFIER_STRING = UUID.nameUUIDFromBytes("frostbite_slowdown".getBytes()).toString();
 
-    private static final float SPEED_REDUCTION = -0.15f; // 减速15%
-    private static final int BASE_FROZEN_TICKS = 40; // 基础冰冻tick增量
-    private static final int EXTRA_FROZEN_PER_LEVEL = 40; // 每级额外冰冻tick
+    /** 减速比例 **/
+    private static final float SPEED_REDUCTION = -0.15f;
+    /** 基础冰冻时间增量 **/
+    private static final int BASE_FROZEN_TICKS = 40;
+    /** 每级额外冰冻时间增量 **/
+    private static final int EXTRA_FROZEN_PER_LEVEL = 40;
 
-    private static final Map<UUID, Integer> entityTickMap = new HashMap<>(); // 记录每个生物的冻结tick计数
+    /** 缓存每个实体的Tick计数器 **/
+    private static final Map<UUID, Integer> entityTickMap = new HashMap<>();
 
+    /** 减速属性修改器 **/
     private static final AttributeModifier FROSTBITE_MODIFIER = new AttributeModifier(
             FROSTBITE_MODIFIER_UUID,
             FROSTBITE_MODIFIER_STRING,
@@ -68,7 +83,10 @@ public class Frostbite extends MobEffect {
     }
 
     /**
-     * 效果移除时清除减速修饰器
+     * 效果移除事件处理
+     * 效果被手动移除时清除减速修改器
+     *
+     * @param event 效果移除事件
      */
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
@@ -80,7 +98,10 @@ public class Frostbite extends MobEffect {
     }
 
     /**
-     * 效果过期时清除减速修饰器
+     * 效果过期事件处理
+     * 效果自然过期时清除减速修改器
+     *
+     * @param event 效果过期事件
      */
     @SubscribeEvent
     public static void onEffectExpired(MobEffectEvent.Expired event) {
@@ -93,7 +114,9 @@ public class Frostbite extends MobEffect {
     }
 
     /**
-     * 移除速度减速修饰器
+     * 移除速度减速修改器
+     *
+     * @param entity 目标实体
      */
     private static void removeSpeedModifier(LivingEntity entity) {
         AttributeInstance movementSpeed = entity.getAttribute(Attributes.MOVEMENT_SPEED);
@@ -103,7 +126,10 @@ public class Frostbite extends MobEffect {
     }
 
     /**
-     * 粒子效果和清理
+     * 玩家Tick事件处理
+     * 生成雪花粒子效果并清理数据
+     *
+     * @param event 玩家Tick事件
      */
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
@@ -116,9 +142,11 @@ public class Frostbite extends MobEffect {
         MobEffectInstance effect = entity.getEffect(FELEffects.FROSTBITE.get());
 
         if (effect != null && !entity.level().isClientSide()) {
+            // 生成雪花粒子
             UUID entityId = entity.getUUID();
             int ticks = entityTickMap.getOrDefault(entityId, 0) + 1;
 
+            // 每20刻生成一次粒子（每秒1次）
             if (ticks >= 20) {
                 entityTickMap.put(entityId, 0);
                 if (entity.level() instanceof ServerLevel serverLevel) {
@@ -130,7 +158,7 @@ public class Frostbite extends MobEffect {
                 entityTickMap.put(entityId, ticks);
             }
         } else if (effect == null) {
-            // 没有效果时，确保清理修饰器和计时器
+            // 没有效果时，确保清理修改器和计时器
             if (entityTickMap.containsKey(entity.getUUID())) {
                 removeSpeedModifier(entity);
                 entityTickMap.remove(entity.getUUID());
