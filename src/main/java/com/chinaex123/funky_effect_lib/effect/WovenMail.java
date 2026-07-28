@@ -1,6 +1,7 @@
 package com.chinaex123.funky_effect_lib.effect;
 
 import com.chinaex123.funky_effect_lib.FunkyEffectLib;
+import com.chinaex123.funky_effect_lib.init.FELAttributes;
 import com.chinaex123.funky_effect_lib.init.FELEffects;
 import com.chinaex123.funky_effect_lib.network.effect.WovenMailSyncPacket;
 import net.minecraft.nbt.CompoundTag;
@@ -10,6 +11,8 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -36,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 public class WovenMail extends MobEffect {
 
     private static final ResourceLocation TANGLE_EXPIRY_ARRAY_KEY = FunkyEffectLib.id("woven_mail_tangle_expiry_array");
+    private static final ResourceLocation DAMAGE_REDUCTION_MODIFIER = ResourceLocation.fromNamespaceAndPath(FunkyEffectLib.MOD_ID, "damage_reduction");
 
     /** 基础缠结生成概率 **/
     private static final float BASE_TANGLE_CHANCE = 0.25f;
@@ -161,6 +165,7 @@ public class WovenMail extends MobEffect {
                 long[] newArray = new long[current.length - expiredLayers];
                 System.arraycopy(current, expiredLayers, newArray, 0, current.length - expiredLayers);
                 saveExpiryArray(entity, newArray);
+                updateDamageReductionAttribute(entity);
                 syncToClient(entity);
             }
         }
@@ -183,6 +188,7 @@ public class WovenMail extends MobEffect {
         newArray[current.length] = currentTime + ((long) (current.length + 1) * LAYER_DURATION);
 
         saveExpiryArray(entity, newArray);
+        updateDamageReductionAttribute(entity);
         syncToClient(entity);
     }
 
@@ -211,6 +217,7 @@ public class WovenMail extends MobEffect {
      */
     public static void clearTangles(LivingEntity entity) {
         saveExpiryArray(entity, new long[0]);
+        removeDamageReductionAttribute(entity);
         syncToClient(entity);
     }
 
@@ -262,7 +269,7 @@ public class WovenMail extends MobEffect {
 
     /**
      * 实体受伤事件处理
-     * 根据缠结数量提供伤害减免
+     * 清理过期的缠结并更新伤害减免属性
      *
      * @param event 实体受伤事件
      */
@@ -279,15 +286,52 @@ public class WovenMail extends MobEffect {
         // 清理过期的缠结
         cleanExpiredTangles(entity);
 
+        // 更新伤害减免属性
+        updateDamageReductionAttribute(entity);
+    }
+
+    /**
+     * 更新实体的伤害减免属性
+     *
+     * @param entity 目标实体
+     */
+    private static void updateDamageReductionAttribute(LivingEntity entity) {
+        AttributeInstance attribute = entity.getAttribute(FELAttributes.DAMAGE_REDUCTION);
+        if (attribute == null) {
+            return;
+        }
+
         int currentTangles = getTangleCount(entity);
+        double damageReduction = 0.0;
 
         if (currentTangles > 0) {
             // 计算减伤比例（每层8%，最高80%）
-            float damageReduction = Math.min(currentTangles * DAMAGE_REDUCTION_PER_LAYER, 0.8f);
-            float originalDamage = event.getOriginalDamage();
-            float reducedDamage = originalDamage * (1.0F - damageReduction);
-            event.setNewDamage(Math.max(0, reducedDamage));
-            // 缠结不会被消耗，只通过时间衰减
+            damageReduction = Math.min(currentTangles * DAMAGE_REDUCTION_PER_LAYER, 0.8);
+        }
+
+        // 移除旧的修饰符
+        attribute.removeModifier(DAMAGE_REDUCTION_MODIFIER);
+
+        // 如果有减伤，添加新的修饰符
+        if (damageReduction > 0.0) {
+            AttributeModifier modifier = new AttributeModifier(
+                    DAMAGE_REDUCTION_MODIFIER,
+                    damageReduction,
+                    AttributeModifier.Operation.ADD_VALUE
+            );
+            attribute.addPermanentModifier(modifier);
+        }
+    }
+
+    /**
+     * 移除实体的伤害减免属性
+     *
+     * @param entity 目标实体
+     */
+    private static void removeDamageReductionAttribute(LivingEntity entity) {
+        AttributeInstance attribute = entity.getAttribute(FELAttributes.DAMAGE_REDUCTION);
+        if (attribute != null) {
+            attribute.removeModifier(DAMAGE_REDUCTION_MODIFIER);
         }
     }
 

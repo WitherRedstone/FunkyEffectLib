@@ -2,6 +2,7 @@ package com.chinaex123.funky_effect_lib;
 
 import com.chinaex123.funky_effect_lib.client.config.ClientConfig;
 import com.chinaex123.funky_effect_lib.entity.AfterimageClone;
+import com.chinaex123.funky_effect_lib.init.FELAttributes;
 import com.chinaex123.funky_effect_lib.init.FELEffects;
 import com.chinaex123.funky_effect_lib.init.FELEntityTypes;
 import com.chinaex123.funky_effect_lib.init.FELSounds;
@@ -24,6 +25,8 @@ public class FunkyEffectLib {
         FELEffects.EFFECTS.register(modEventBus);
         FELSounds.SOUND_EVENTS.register(modEventBus);
         FELEntityTypes.ENTITY_TYPES.register(modEventBus);
+        FELAttributes.ATTRIBUTES.register(modEventBus);
+
         modEventBus.addListener(FunkyEffectLib::registerAttributes);
         modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
     }
