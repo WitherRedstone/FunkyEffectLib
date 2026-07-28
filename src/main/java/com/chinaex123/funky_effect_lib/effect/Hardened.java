@@ -1,14 +1,15 @@
 package com.chinaex123.funky_effect_lib.effect;
 
-import com.chinaex123.funky_effect_lib.FunkyEffectLib;
-import com.chinaex123.funky_effect_lib.init.FELEffects;
+import com.chinaex123.funky_effect_lib.init.FELAttributes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeMap;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.UUID;
 
 /**
  * 硬化：按百分比减免所有来源的伤害
@@ -20,8 +21,10 @@ import net.minecraftforge.fml.common.Mod;
  *   <li>减免所有来源的伤害（近战、远程、魔法等）</li>
  * </ol>
  */
-@Mod.EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class Hardened extends MobEffect {
+
+    private static final UUID MARDENED_MODIFIER_UUID = UUID.fromString("e53ec32f-223b-43b4-b6be-c1afef663f6b");
+    private static final String HARDENED_MODIFIER_STRING = UUID.nameUUIDFromBytes("hardened_damage_reduction".getBytes()).toString();
 
     /** 每级伤害减免 **/
     private static final float REDUCTION_PER_LEVEL = 0.05f;
@@ -32,34 +35,30 @@ public class Hardened extends MobEffect {
         super(MobEffectCategory.BENEFICIAL, color);
     }
 
-    /**
-     * 实体受伤事件处理
-     * 根据硬化等级减免伤害
-     *
-     * @param event 实体受伤事件
-     */
-    @SubscribeEvent
-    public static void onLivingDamage(LivingDamageEvent event) {
-        LivingEntity entity = event.getEntity();
-
-        if (entity.level().isClientSide()) {
-            return;
+    @Override
+    public void addAttributeModifiers(LivingEntity entity, @NotNull AttributeMap attributeMap, int amplifier) {
+        AttributeInstance attribute = entity.getAttribute(FELAttributes.DAMAGE_REDUCTION.get());
+        if (attribute != null) {
+            // 计算减伤百分比：等级 + 1 × 每级减免，最高50%
+            double damageReduction = Math.min((amplifier + 1) * REDUCTION_PER_LEVEL, MAX_REDUCTION);
+            
+            AttributeModifier modifier = new AttributeModifier(
+                    MARDENED_MODIFIER_UUID,
+                    HARDENED_MODIFIER_STRING,
+                    damageReduction,
+                    AttributeModifier.Operation.ADDITION
+            );
+            attribute.addPermanentModifier(modifier);
         }
+        super.addAttributeModifiers(entity, attributeMap, amplifier);
+    }
 
-        // 检查实体是否拥有硬化效果
-        MobEffectInstance effect = entity.getEffect(FELEffects.HARDENED.get());
-
-        if (effect != null) {
-            int amplifier = effect.getAmplifier();
-            // 计算减伤百分比：等级 + 1 × 每级减免，最高90%
-            float damageReduction = Math.min((amplifier + 1) * REDUCTION_PER_LEVEL, MAX_REDUCTION);
-
-            if (damageReduction > 0) {
-                float originalDamage = event.getAmount();
-                float reducedDamage = originalDamage * (1.0F - damageReduction);
-                // 设置减免后的伤害，最低为0
-                event.setAmount(Math.max(0, reducedDamage));
-            }
+    @Override
+    public void removeAttributeModifiers(LivingEntity entity, @NotNull AttributeMap attributeMap, int amplifier) {
+        AttributeInstance attribute = entity.getAttribute(FELAttributes.DAMAGE_REDUCTION.get());
+        if (attribute != null) {
+            attribute.removeModifier(MARDENED_MODIFIER_UUID);
         }
+        super.removeAttributeModifiers(entity, attributeMap, amplifier);
     }
 }

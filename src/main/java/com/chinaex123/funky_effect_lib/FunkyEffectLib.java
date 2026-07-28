@@ -2,11 +2,13 @@ package com.chinaex123.funky_effect_lib;
 
 import com.chinaex123.funky_effect_lib.client.config.ClientConfig;
 import com.chinaex123.funky_effect_lib.entity.AfterimageClone;
+import com.chinaex123.funky_effect_lib.init.FELAttributes;
 import com.chinaex123.funky_effect_lib.init.FELEffects;
 import com.chinaex123.funky_effect_lib.init.FELEntityTypes;
 import com.chinaex123.funky_effect_lib.init.FELSounds;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -24,10 +26,15 @@ public class FunkyEffectLib {
 
     public FunkyEffectLib() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
         FELEffects.EFFECTS.register(modEventBus);
         FELSounds.SOUND_EVENTS.register(modEventBus);
         FELEntityTypes.ENTITY_TYPES.register(modEventBus);
+
         modEventBus.addListener(FunkyEffectLib::registerAttributes);
+        MinecraftForge.EVENT_BUS.register(FunkyEffectLib.class);
+        FELAttributes.ATTRIBUTES.register(modEventBus);
+
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
     }
 
@@ -35,6 +42,7 @@ public class FunkyEffectLib {
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(FELEntityTypes.AFTERIMAGE_CLONE.get(), AfterimageClone.createAttributes());
     }
+
 
     public static ResourceLocation id(String path) {
         return new ResourceLocation(MOD_ID, path);
