@@ -21,9 +21,9 @@ public class ScorchAPI {
     /** 最大灼烧层数 **/
     public static final int MAX_SCORCH_STACKS = 100;
     /** 默认点燃触发间隔（每多少层触发一次） **/
-    public static final int DEFAULT_TRIGGER_INTERVAL = 10;
+    public static final int DEFAULT_TRIGGER_INTERVAL = 25;
     /** 最大点燃等级 **/
-    public static final int MAX_IGNITE_LEVEL = 10;
+    public static final int MAX_IGNITE_LEVEL = 25;
     /** 默认基础伤害 **/
     public static final float DEFAULT_BASE_DAMAGE = 2.0f;
     /** 默认伤害增长率（每增加一个点燃等级增加的伤害） **/

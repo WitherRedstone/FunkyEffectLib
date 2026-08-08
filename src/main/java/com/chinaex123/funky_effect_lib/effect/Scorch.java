@@ -40,8 +40,6 @@ public class Scorch extends MobEffect {
 
     /** 叠层间隔 **/
     private static final int TICKS_PER_STACK = 20;
-    /** 灼烧最高层数 **/
-    private static final int MAX_SCORCH_STACKS = 100;
     /** 100层后触发间隔 **/
     private static final int POST_MAX_TICKS = 100;
     /** 保持燃烧状态的时间 **/
@@ -73,7 +71,7 @@ public class Scorch extends MobEffect {
             int currentStacks = ScorchAPI.getScorchStacks(entity);
 
             // 如果已经达到最高层数，进入特殊模式
-            if (currentStacks >= MAX_SCORCH_STACKS) {
+            if (currentStacks >= ScorchAPI.MAX_SCORCH_STACKS) {
                 handlePostMaxMode(entity, entityId);
                 return;
             }
@@ -92,7 +90,7 @@ public class Scorch extends MobEffect {
                 syncToClient(entity, newStacks);
 
                 // 检查是否刚刚达到100层
-                if (newStacks == MAX_SCORCH_STACKS) {
+                if (newStacks == ScorchAPI.MAX_SCORCH_STACKS) {
                     onReachMaxStacks(entity);
                 }
             } else {
