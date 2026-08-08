@@ -15,12 +15,13 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  * 功能：渲染玩家释放的残影分身实体
  */
+@SuppressWarnings("removal")
 public class AfterimageCloneRenderer extends LivingEntityRenderer<AfterimageClone, PlayerModel<AfterimageClone>> {
 
     /** 默认Steve皮肤纹理 **/
-    private static final ResourceLocation STEVE_SKIN = ResourceLocation.parse("textures/entity/player/wide/steve.png");
+    private static final ResourceLocation STEVE_SKIN = new ResourceLocation("minecraft", "textures/entity/player/wide/steve.png");
     /** 默认Alex皮肤纹理 **/
-    private static final ResourceLocation ALEX_SKIN = ResourceLocation.parse("textures/entity/player/slim/alex.png");
+    private static final ResourceLocation ALEX_SKIN = new ResourceLocation("minecraft", "textures/entity/player/slim/alex.png");
 
     /**
      * 构造残影分身渲染器
