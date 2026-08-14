@@ -33,6 +33,8 @@ public interface FELEffects {
     DeferredHolder<MobEffect, MobEffect> BLIND = EFFECTS.register("blind", () -> new Blind(0x00FFFF));
     DeferredHolder<MobEffect, MobEffect> BOLT_CHARGE = EFFECTS.register("bolt_charge", () -> new BoltCharge(0x00FFFF));
     // 缚丝
+    // 缚丝
+    DeferredHolder<MobEffect, MobEffect> THREADLING = EFFECTS.register("threadling", () -> new Threadling(0x008000));
     DeferredHolder<MobEffect, MobEffect> SEVER = EFFECTS.register("sever", () -> new Sever(0x008000));
     DeferredHolder<MobEffect, MobEffect> WOVEN_MAIL = EFFECTS.register("woven_mail", () -> new WovenMail(0x008000));
     // 冰影

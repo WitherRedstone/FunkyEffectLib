@@ -50,6 +50,9 @@
   "effect.funky_effect_lib.bolt_charge": "Bolt Charge",
   "effect.funky_effect_lib.bolt_charge.desc": "Builds to 10 stacks, then strikes with lightning.",
   "effect.funky_effect_lib.bolt_charge.description": "Builds to 10 stacks, then strikes with lightning.",
+  "effect.funky_effect_lib.threadling": "Threadling",
+  "effect.funky_effect_lib.threadling.desc": "Generate Threadlings to attack the enemy.",
+  "effect.funky_effect_lib.threadling.description": "Generate Threadlings to attack the enemy.",
   "effect.funky_effect_lib.sever": "Sever",
   "effect.funky_effect_lib.sever.desc": "Significantly reduces attack damage",
   "effect.funky_effect_lib.sever.description": "Significantly reduces attack damage",
@@ -247,6 +250,7 @@
   "damage_source.funky_effect_lib.real_damage": "True Damage",
 
   "entity.funky_effect_lib.afterimage_clone": "Afterimage Clone",
+  "entity.funky_effect_lib.threadling": "Threadling",
 
   "gui.funky_effect_lib.soulburn": "Soulburn",
   "gui.funky_effect_lib.pervading_darkness": "Pervading Shadow x%s",
