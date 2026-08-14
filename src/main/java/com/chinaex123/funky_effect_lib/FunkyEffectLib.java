@@ -2,6 +2,7 @@ package com.chinaex123.funky_effect_lib;
 
 import com.chinaex123.funky_effect_lib.client.config.ClientConfig;
 import com.chinaex123.funky_effect_lib.entity.AfterimageClone;
+import com.chinaex123.funky_effect_lib.entity.Threadling;
 import com.chinaex123.funky_effect_lib.init.FELAttributes;
 import com.chinaex123.funky_effect_lib.init.FELEffects;
 import com.chinaex123.funky_effect_lib.init.FELEntityTypes;
@@ -41,6 +42,7 @@ public class FunkyEffectLib {
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(FELEntityTypes.AFTERIMAGE_CLONE.get(), AfterimageClone.createAttributes());
+        event.put(FELEntityTypes.THREADLING.get(), Threadling.createAttributes());
     }
 
 

@@ -50,6 +50,9 @@
   "effect.funky_effect_lib.bolt_charge": "电光充能",
   "effect.funky_effect_lib.bolt_charge.desc": "缓慢叠加层数，当层数达到10层时消耗所有层数，召唤一道闪电攻击敌人",
   "effect.funky_effect_lib.bolt_charge.description": "缓慢叠加层数，当层数达到10层时消耗所有层数，召唤一道闪电攻击敌人",
+  "effect.funky_effect_lib.threadling": "线虫",
+  "effect.funky_effect_lib.threadling.desc": "生成线虫攻击敌人",
+  "effect.funky_effect_lib.threadling.description": "生成线虫攻击敌人",
   "effect.funky_effect_lib.sever": "瓦解",
   "effect.funky_effect_lib.sever.desc": "大幅降低攻击力",
   "effect.funky_effect_lib.sever.description": "大幅降低攻击力",
@@ -241,6 +244,7 @@
   "damage_source.funky_effect_lib.real_damage": "真实伤害",
 
   "entity.funky_effect_lib.afterimage_clone": "残影分身",
+  "entity.funky_effect_lib.threadling": "线虫",
 
   "gui.funky_effect_lib.soulburn": "魂燃",
   "gui.funky_effect_lib.pervading_darkness": "弥漫暗影 x%s",

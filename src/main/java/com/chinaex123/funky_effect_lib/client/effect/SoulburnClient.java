@@ -18,7 +18,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 魂燃（Soulburn）客户端处理类
+ * 魂燃客户端处理类
  * <p>
  * 功能：在客户端显示魂燃的充能状态HUD
  */

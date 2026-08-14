@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.chinaex123.funky_effect_lib.effect.FrostArmor.MAX_CRYSTALS;
 
 /**
- * 冰霜护甲（Frost Armor）客户端处理类
+ * 冰霜护甲客户端处理类
  * <p>
  * 功能：在客户端显示冰霜护甲的冰晶数量和剩余时间HUD
  */

@@ -33,6 +33,7 @@ public interface FELEffects {
     RegistryObject<MobEffect> BLIND = EFFECTS.register("blind", () -> new Blind(0x00FFFF));
     RegistryObject<MobEffect> BOLT_CHARGE = EFFECTS.register("bolt_charge", () -> new BoltCharge(0x00FFFF));
     // 缚丝
+    RegistryObject<MobEffect> THREADLING = EFFECTS.register("threadling", () -> new Threadling(0x008000));
     RegistryObject<MobEffect> SEVER = EFFECTS.register("sever", () -> new Sever(0x008000));
     RegistryObject<MobEffect> WOVEN_MAIL = EFFECTS.register("woven_mail", () -> new WovenMail(0x008000));
     // 冰影
