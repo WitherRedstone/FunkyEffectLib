@@ -21,6 +21,7 @@ public interface FELEffects {
     DeferredHolder<MobEffect, MobEffect> DEVOUR = EFFECTS.register("devour", () -> new Devour(0x99099));
     DeferredHolder<MobEffect, MobEffect> SUPPRESSION = EFFECTS.register("suppression", () -> new Suppression(0x99099));
     DeferredHolder<MobEffect, MobEffect> VULNERABLE = EFFECTS.register("vulnerable", () -> new Vulnerable(0x99099));
+    DeferredHolder<MobEffect, MobEffect> OVERSHIELD = EFFECTS.register("overshield", () -> new Overshield(0x99099));
     // 烈日
     DeferredHolder<MobEffect, MobEffect> CURE = EFFECTS.register("cure", () -> new Cure(0xCC6600));
     DeferredHolder<MobEffect, MobEffect> RESTORATION = EFFECTS.register("restoration", () -> new Restoration(0xCC6600));
@@ -32,7 +33,6 @@ public interface FELEffects {
     DeferredHolder<MobEffect, MobEffect> JOLT = EFFECTS.register("jolt", () -> new Jolt(0x00FFFF));
     DeferredHolder<MobEffect, MobEffect> BLIND = EFFECTS.register("blind", () -> new Blind(0x00FFFF));
     DeferredHolder<MobEffect, MobEffect> BOLT_CHARGE = EFFECTS.register("bolt_charge", () -> new BoltCharge(0x00FFFF));
-    // 缚丝
     // 缚丝
     DeferredHolder<MobEffect, MobEffect> THREADLING = EFFECTS.register("threadling", () -> new Threadling(0x008000));
     DeferredHolder<MobEffect, MobEffect> SEVER = EFFECTS.register("sever", () -> new Sever(0x008000));
