@@ -21,6 +21,7 @@ public interface FELEffects {
     RegistryObject<MobEffect> DEVOUR = EFFECTS.register("devour", () -> new Devour(0x99099));
     RegistryObject<MobEffect> SUPPRESSION = EFFECTS.register("suppression", () -> new Suppression(0x99099));
     RegistryObject<MobEffect> VULNERABLE = EFFECTS.register("vulnerable", () -> new Vulnerable(0x99099));
+    RegistryObject<MobEffect> OVERSHIELD = EFFECTS.register("overshield", () -> new Overshield(0x99099));
     // 烈日
     RegistryObject<MobEffect> CURE = EFFECTS.register("cure", () -> new Cure(0xCC6600));
     RegistryObject<MobEffect> RESTORATION = EFFECTS.register("restoration", () -> new Restoration(0xCC6600));
