@@ -262,5 +262,8 @@
   "gui.funky_effect_lib.woven_mail": "织造铠甲 x%s %ss",
   "gui.funky_effect_lib.bolt_charge": "电光充能 x%s",
   "gui.funky_effect_lib.slow_stacks": "减速层数 %s/%s",
-  "gui.funky_effect_lib.scorch": "灼烧 x%s"
+  "gui.funky_effect_lib.scorch": "灼烧 x%s",
+
+  "attribute.funky_effect_lib.damage_reduction": "伤害减免",
+  "attribute.funky_effect_lib.damage_reduction.desc": "减少受到的伤害"
 }

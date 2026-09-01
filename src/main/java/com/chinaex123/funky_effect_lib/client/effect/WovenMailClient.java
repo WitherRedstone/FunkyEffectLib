@@ -18,8 +18,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.chinaex123.funky_effect_lib.effect.WovenMail.MAX_TANGLES;
-
 /**
  * 织造铠甲客户端处理类
  * <p>
@@ -52,7 +50,7 @@ public class WovenMailClient {
     public static void setTangleCount(UUID playerUuid, int count, int remainingSeconds) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null && minecraft.player.getUUID().equals(playerUuid)) {
-            TANGLE_CACHE.put(playerUuid, Math.min(count, MAX_TANGLES));
+            TANGLE_CACHE.put(playerUuid, Math.min(count, 10));
             REMAINING_SECONDS_CACHE.put(playerUuid, remainingSeconds);
             // 触发显示
             isDisplaying = true;

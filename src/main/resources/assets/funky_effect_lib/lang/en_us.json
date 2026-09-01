@@ -262,5 +262,8 @@
   "gui.funky_effect_lib.woven_mail": "Woven Mail x%s %ss",
   "gui.funky_effect_lib.bolt_charge": "Bolt Charge x%s",
   "gui.funky_effect_lib.slow_stacks": "Slow Stacks %s/%s",
-  "gui.funky_effect_lib.scorch": "Scorch x%s"
+  "gui.funky_effect_lib.scorch": "Scorch x%s",
+
+  "attribute.funky_effect_lib.damage_reduction": "Damage Reduction",
+  "attribute.funky_effect_lib.damage_reduction.desc": "Reduce Damage Taken"
 }
