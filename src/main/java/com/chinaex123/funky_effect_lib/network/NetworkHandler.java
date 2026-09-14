@@ -77,5 +77,12 @@ public class NetworkHandler {
                 ScorchSyncPacket.STREAM_CODEC,
                 ScorchSyncPacket::handle
         );
+
+        // 舒张的同步包
+        registrar.playToClient(
+                DiastoleSyncPacket.TYPE,
+                DiastoleSyncPacket.STREAM_CODEC,
+                DiastoleSyncPacket::handle
+        );
     }
 }

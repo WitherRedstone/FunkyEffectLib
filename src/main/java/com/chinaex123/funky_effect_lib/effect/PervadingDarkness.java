@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 弥漫暗影：每2.5秒增加1层，叠至10层时死亡，通过击杀特定敌人消除1层
+ * 弥漫暗影：降低移动速度并在叠至10层时死亡，可通过击杀特定敌人消除层数
  **/
 @EventBusSubscriber(modid = FunkyEffectLib.MOD_ID)
 public class PervadingDarkness extends MobEffect {

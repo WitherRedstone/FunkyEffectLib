@@ -13,12 +13,13 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 冰霜护甲状态效果类
+ * 冰霜护甲：拾取经验球有概率叠加一层冰晶，减伤层数随时间消失
  * <p>
  * 该效果为增益效果，通过拾取经验球积攒冰晶层数，每层提供伤害减免。
  * 冰晶具有独立的过期时间，过期后自动消失。
@@ -78,6 +79,29 @@ public class FrostArmor extends MobEffect {
     public void onEffectStarted(@NotNull LivingEntity entity, int amplifier) {
         super.onEffectStarted(entity, amplifier);
         StackableArmorAPI.onEffectGained(entity, CONFIG);
+    }
+
+    /**
+     * 实体Tick事件处理
+     * 用于检测效果是否存在，如果不存在则清理所有数据
+     *
+     * @param event 实体Tick事件
+     */
+    @SubscribeEvent
+    public static void onEntityTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) {
+            return;
+        }
+        
+        if (entity.level().isClientSide()) {
+            return;
+        }
+        
+        // 检查实体是否还有效果
+        if (!entity.hasEffect(FELEffects.FROST_ARMOR)) {
+            // 效果不存在，强制清理所有数据
+            StackableArmorAPI.onEffectLost(entity, CONFIG);
+        }
     }
 
     /**
