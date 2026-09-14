@@ -11,10 +11,11 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -22,7 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 织造铠甲状态效果类
+ * 织造铠甲：拾取经验球有概率叠加一层缠结，减伤层数随时间消失
  * <p>
  * 该效果为增益效果，通过拾取经验球积攒缠结层数，每层提供较高的伤害减免。
  * 缠结具有独立的过期时间，过期后自动消失。
@@ -85,6 +86,29 @@ public class WovenMail extends MobEffect {
     public void onEffectStarted(@NotNull LivingEntity entity, int amplifier) {
         super.onEffectStarted(entity, amplifier);
         StackableArmorAPI.onEffectGained(entity, CONFIG);
+    }
+
+    /**
+     * 实体Tick事件处理
+     * 用于检测效果是否存在，如果不存在则清理所有数据
+     *
+     * @param event 实体Tick事件
+     */
+    @SubscribeEvent
+    public static void onEntityTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) {
+            return;
+        }
+        
+        if (entity.level().isClientSide()) {
+            return;
+        }
+        
+        // 检查实体是否还有效果
+        if (!entity.hasEffect(FELEffects.WOVEN_MAIL)) {
+            // 效果不存在，强制清理所有数据
+            StackableArmorAPI.onEffectLost(entity, CONFIG);
+        }
     }
 
     /**

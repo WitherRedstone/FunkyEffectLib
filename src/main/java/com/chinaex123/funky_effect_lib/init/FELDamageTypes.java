@@ -22,6 +22,8 @@ public class FELDamageTypes {
     public static final ResourceKey<DamageType> VACUUM_EROSION = create("vacuum_erosion");
     /** 真实伤害类型：全部无视 **/
     public static final ResourceKey<DamageType> REAL_DAMAGE = create("real_damage");
+    /** 撕裂伤害类型：全部无视 **/
+    public static final ResourceKey<DamageType> BREACH = create("breach");
 
     private static ResourceKey<DamageType> create(String name) {
         return ResourceKey.create(

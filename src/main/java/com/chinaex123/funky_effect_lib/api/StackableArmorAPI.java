@@ -321,13 +321,25 @@ public class StackableArmorAPI {
     /**
      * 状态效果获得时的回调
      * <p>
-     * 当前实现为空，可根据需要在效果获得时执行额外的初始化逻辑
+     * 当效果获得时，先清理任何残留的旧数据，然后初始化
      *
      * @param entity 目标实体
      * @param config 护甲配置
      */
     public static void onEffectGained(LivingEntity entity, ArmorConfig config) {
-        // 可以在此添加效果获得时的额外逻辑
+        // 清理任何残留的旧数据
+        CompoundTag persistentData = entity.getPersistentData();
+        String key = config.expiryKey.toString();
+        persistentData.remove(key);
+        
+        // 移除旧的属性修改器
+        AttributeInstance attribute = entity.getAttribute(FELAttributes.DAMAGE_REDUCTION);
+        if (attribute != null) {
+            attribute.removeModifier(config.modifierId());
+        }
+        
+        // 同步到客户端
+        syncToClient(entity, config);
     }
 
     /**
@@ -339,18 +351,48 @@ public class StackableArmorAPI {
      * @param config 护甲配置
      */
     public static void onEffectLost(LivingEntity entity, ArmorConfig config) {
-        clearAllLayers(entity, config);
+        // 强制清除层数数组
+        CompoundTag persistentData = entity.getPersistentData();
+        String key = config.expiryKey.toString();
+        persistentData.remove(key);
+        
+        // 强制移除属性修改器
+        AttributeInstance attribute = entity.getAttribute(FELAttributes.DAMAGE_REDUCTION);
+        if (attribute != null) {
+            attribute.removeModifier(config.modifierId());
+        }
+        
+        // 同步到客户端
+        syncToClient(entity, config);
     }
 
     /**
      * 状态效果每刻更新时的回调
      * <p>
      * 在效果生效期间，每刻检查并清理过期的层数
+     * 如果效果不存在，则强制清理所有数据
      *
      * @param entity 目标实体
      * @param config 护甲配置
      */
     public static void onEffectTick(LivingEntity entity, ArmorConfig config) {
+        // 检查实体是否还有效果
+        if (!hasEffect(entity, config)) {
+            // 效果不存在，强制清理所有数据
+            CompoundTag persistentData = entity.getPersistentData();
+            String key = config.expiryKey.toString();
+            persistentData.remove(key);
+            
+            AttributeInstance attribute = entity.getAttribute(FELAttributes.DAMAGE_REDUCTION);
+            if (attribute != null) {
+                attribute.removeModifier(config.modifierId());
+            }
+            
+            syncToClient(entity, config);
+            return;
+        }
+        
+        // 效果存在，正常清理过期层数
         cleanExpiredLayers(entity, config);
     }
 }

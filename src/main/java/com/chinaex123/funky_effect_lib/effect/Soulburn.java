@@ -7,6 +7,7 @@ import com.chinaex123.funky_effect_lib.network.effect.SoulburnSyncPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.effect.MobEffect;
@@ -221,9 +222,10 @@ public class Soulburn extends MobEffect {
             attribute.removeModifier(SOULBURN_MODIFIER);
         }
 
-        // 在原伤害基础上增加真实伤害（真实伤害无视护甲和减伤）
-        float originalDamage = event.getNewDamage();
-        event.setNewDamage(originalDamage + realDamage);
+        // 使用自定义真实伤害源造成额外伤害
+        LivingEntity target = event.getEntity();
+        DamageSource realDamageSource = target.level().damageSources().source(FELDamageTypes.REAL_DAMAGE, player);
+        target.hurt(realDamageSource, realDamage);
     }
 
     /**

@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 灼烧：每秒叠加一级并造成伤害，每满10级触发一次点燃
+ * 灼烧：对目标施加持续伤害并叠层
  * <p>
  * 机制：
  * <ol>
@@ -38,7 +38,7 @@ import java.util.UUID;
 public class Scorch extends MobEffect {
 
     /** 叠层间隔 **/
-    private static final int TICKS_PER_STACK = 20;
+    private static final int TICKS_PER_STACK = 13;
     /** 100层后触发间隔 **/
     private static final int POST_MAX_TICKS = 100;
     /** 保持燃烧状态的时间 **/
