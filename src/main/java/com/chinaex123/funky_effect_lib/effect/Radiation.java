@@ -14,6 +14,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
@@ -78,18 +79,14 @@ public class Radiation extends MobEffect {
     }
 
     /**
-     * 玩家Tick事件处理
+     * 实体Tick事件处理
      * 管理辐射效果的伤害、护甲减少和饱食度消耗
      *
-     * @param event 玩家Tick事件
+     * @param event 实体Tick事件
      */
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
-        LivingEntity entity = event.player;
+    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
+        LivingEntity entity = event.getEntity();
 
         if (entity.level().isClientSide()) {
             return;

@@ -9,8 +9,8 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
@@ -57,25 +57,21 @@ public class Bleeding extends MobEffect {
     }
 
     /**
-     * 玩家Tick事件处理
+     * 实体Tick事件处理
      * 管理流血效果的计时和伤害
      *
-     * @param event 玩家Tick事件
+     * @param event 实体Tick事件
      */
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
+    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
+        LivingEntity entity = event.getEntity();
+
+        if (entity.level().isClientSide()) {
             return;
         }
 
-        Player player = event.player;
-
-        if (player.level().isClientSide()) {
-            return;
-        }
-
-        UUID entityId = player.getUUID();
-        MobEffectInstance effect = player.getEffect(FELEffects.BLEEDING.get());
+        UUID entityId = entity.getUUID();
+        MobEffectInstance effect = entity.getEffect(FELEffects.BLEEDING.get());
 
         if (effect == null) {
             // 效果消失，清除计时器
@@ -95,12 +91,12 @@ public class Bleeding extends MobEffect {
 
             // 创建流血伤害源
             DamageSource bleedingDamage = new DamageSource(
-                    player.level().registryAccess()
+                    entity.level().registryAccess()
                             .registryOrThrow(Registries.DAMAGE_TYPE)
                             .getHolderOrThrow(FELDamageTypes.BLEEDING)
             );
-            // 对玩家造成伤害
-            player.hurt(bleedingDamage, damage);
+            // 对实体造成伤害
+            entity.hurt(bleedingDamage, damage);
             // 重置计时器
             tickCounter = 0;
         }

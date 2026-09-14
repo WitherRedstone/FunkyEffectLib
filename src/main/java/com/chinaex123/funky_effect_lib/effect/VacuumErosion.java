@@ -10,6 +10,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
@@ -55,18 +56,14 @@ public class VacuumErosion extends MobEffect {
     }
 
     /**
-     * 玩家Tick事件处理
-     * 管理真空侵蚀的计时和伤害
+     * 实体Tick事件处理
+     * 管理真空侵蚀效果的计时和伤害
      *
-     * @param event 玩家Tick事件
+     * @param event 实体Tick事件
      */
     @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
-        LivingEntity entity = event.player;
+    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
+        LivingEntity entity = event.getEntity();
 
         if (entity.level().isClientSide()) {
             return;

@@ -54,7 +54,7 @@ public class Jolt extends MobEffect {
     private static final Map<UUID, Integer> cooldownMap = new HashMap<>();
 
     public Jolt(int color) {
-        super(MobEffectCategory.HARMFUL, color);
+        super(MobEffectCategory.NEUTRAL, color);
     }
 
     @Override

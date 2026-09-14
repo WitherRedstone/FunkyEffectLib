@@ -11,10 +11,12 @@ public interface FELEffects {
     DeferredRegister<MobEffect> EFFECTS = DeferredRegister.create(Registries.MOB_EFFECT, FunkyEffectLib.MOD_ID);
 
     // ========================= 命运2效果 =========================
-    // 暗影
+    // 机制
     RegistryObject<MobEffect> DARKNESS = EFFECTS.register("darkness", () -> new Darkness(0x996300));
     RegistryObject<MobEffect> CREEPING_DARKNESS = EFFECTS.register("creeping_darkness", () -> new CreepingDarkness(0x996300));
     RegistryObject<MobEffect> PERVADING_DARKNESS = EFFECTS.register("pervading_darkness", () -> new PervadingDarkness(0x996300));
+    RegistryObject<MobEffect> DIMENSIONAL_BREACH = EFFECTS.register("dimensional_breach", () -> new DimensionalBreach(0x996300));
+    RegistryObject<MobEffect> DIASTOLE = EFFECTS.register("diastole", () -> new Diastole(0x996300));
     // 虚空
     RegistryObject<MobEffect> INVISIBILITY = EFFECTS.register("invisibility", () -> new Invisibility(0x99099));
     RegistryObject<MobEffect> VOLATILE = EFFECTS.register("volatile", () -> new Volatile(0x99099));

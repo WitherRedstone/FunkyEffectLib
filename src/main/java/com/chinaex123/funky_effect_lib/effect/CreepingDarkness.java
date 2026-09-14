@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 蔓延黑暗：每2.5秒增加1层，叠至10层时死亡
+ * 蔓延黑暗：降低移动速度并在叠至10层时死亡
  * <p>
  * 机制：
  * <ol>

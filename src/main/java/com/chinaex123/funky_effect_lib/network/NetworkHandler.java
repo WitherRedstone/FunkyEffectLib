@@ -90,6 +90,13 @@ public class NetworkHandler {
                     ScorchSyncPacket::handle
             );
 
+            // 舒张的同步包
+            CHANNEL.registerMessage(packetId++, DiastoleSyncPacket.class,
+                    DiastoleSyncPacket::encode,
+                    DiastoleSyncPacket::decode,
+                    DiastoleSyncPacket::handle
+            );
+
         });
     }
 }

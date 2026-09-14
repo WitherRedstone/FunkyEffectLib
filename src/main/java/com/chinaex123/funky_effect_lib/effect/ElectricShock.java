@@ -13,6 +13,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
@@ -67,18 +68,14 @@ public class ElectricShock extends MobEffect {
     }
 
     /**
-     * 玩家Tick事件处理
+     * 实体Tick事件处理
      * 管理减速效果和周期性伤害
      *
-     * @param event 玩家Tick事件
+     * @param event 实体Tick事件
      */
     @SubscribeEvent
-    public static void onLivingTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
-
-        LivingEntity entity = event.player;
+    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
+        LivingEntity entity = event.getEntity();
 
         if (entity.level().isClientSide()) {
             return;

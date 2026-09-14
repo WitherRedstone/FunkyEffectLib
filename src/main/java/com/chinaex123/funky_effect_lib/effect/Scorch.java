@@ -39,7 +39,7 @@ import java.util.UUID;
 public class Scorch extends MobEffect {
 
     /** 叠层间隔 **/
-    private static final int TICKS_PER_STACK = 20;
+    private static final int TICKS_PER_STACK = 13;
     /** 100层后触发间隔 **/
     private static final int POST_MAX_TICKS = 100;
     /** 保持燃烧状态的时间 **/

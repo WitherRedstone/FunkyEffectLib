@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 /**
- * 冰霜护甲状态效果类
+ * 冰霜护甲：拾取经验球有概率叠加一层冰晶，减伤层数随时间消失
  * <p>
  * 该效果为增益效果，通过拾取经验球积攒冰晶层数，每层提供伤害减免。
  * 冰晶具有独立的过期时间，过期后自动消失。

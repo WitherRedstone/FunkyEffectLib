@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 黑暗之重：每2.5秒降低移动速度，最多叠加10层
+ * 黑暗之重：降低移动速度
  * <p>
  * 机制：
  * <ol>

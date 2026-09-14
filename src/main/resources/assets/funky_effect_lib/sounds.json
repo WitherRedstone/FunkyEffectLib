@@ -3,5 +3,30 @@
     "sounds": [
       "funky_effect_lib:fel.effect.ignite_explode"
     ]
+  },
+  "fel.effect.diastole": {
+    "sounds": [
+      "funky_effect_lib:fel.effect.diastole"
+    ]
+  },
+  "fel.effect.diastole_1": {
+    "sounds": [
+      "funky_effect_lib:fel.effect.diastole_1"
+    ]
+  },
+  "fel.effect.diastole_2": {
+    "sounds": [
+      "funky_effect_lib:fel.effect.diastole_2"
+    ]
+  },
+  "fel.effect.diastole_3": {
+    "sounds": [
+      "funky_effect_lib:fel.effect.diastole_3"
+    ]
+  },
+  "fel.effect.diastole_4": {
+    "sounds": [
+      "funky_effect_lib:fel.effect.diastole_4"
+    ]
   }
 }
